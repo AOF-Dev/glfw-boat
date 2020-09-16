@@ -90,6 +90,9 @@ endif()
 if (GLFW_USE_WAYLAND)
     set(_GLFW_WAYLAND 1)
     message(STATUS "Using Wayland for window creation")
+elseif (GLFW_USE_BOAT)
+    set(_GLFW_BOAT 1)
+    message(STATUS "Using Boat for window creation")
 elseif (GLFW_USE_OSMESA)
     set(_GLFW_OSMESA 1)
     message(STATUS "Using OSMesa for headless context creation")
@@ -109,7 +112,7 @@ endif()
 #--------------------------------------------------------------------
 # Find and add Unix math and time libraries
 #--------------------------------------------------------------------
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT GLFW_USE_BOAT)
     find_library(RT_LIBRARY rt)
     mark_as_advanced(RT_LIBRARY)
     if (RT_LIBRARY)
@@ -128,6 +131,58 @@ if (UNIX AND NOT APPLE)
         list(APPEND glfw_LIBRARIES "${CMAKE_DL_LIBS}")
         list(APPEND glfw_PKG_LIBS "-l${CMAKE_DL_LIBS}")
     endif()
+endif()
+
+#--------------------------------------------------------------------
+# Find and add Android libraries
+#--------------------------------------------------------------------
+if (GLFW_USE_BOAT)
+
+    message(STATUS "Looking for Android libraries")
+
+    find_library(MATH_LIBRARY m)
+    mark_as_advanced(MATH_LIBRARY)
+    if (MATH_LIBRARY)
+        list(APPEND glfw_LIBRARIES "${MATH_LIBRARY}")
+        list(APPEND glfw_PKG_LIBS "-lm")
+    else()
+        message(FATAL_ERROR "Math library not found!")
+    endif()
+    
+    find_library(ANDROID_LIBRARY android)
+    mark_as_advanced(ANDROID_LIBRARY)
+    if (ANDROID_LIBRARY)
+        list(APPEND glfw_LIBRARIES "${ANDROID_LIBRARY}")
+        list(APPEND glfw_PKG_LIBS "-landroid")
+    else()
+        message(FATAL_ERROR "Android library not found!")
+    endif()
+    
+    find_library(LOG_LIBRARY log)
+    mark_as_advanced(LOG_LIBRARY)
+    if (LOG_LIBRARY)
+        list(APPEND glfw_LIBRARIES "${LOG_LIBRARY}")
+        list(APPEND glfw_PKG_LIBS "-llog")
+    else()
+        message(FATAL_ERROR "Log library not found!")
+    endif()
+
+    if (CMAKE_DL_LIBS)
+        list(APPEND glfw_LIBRARIES "${CMAKE_DL_LIBS}")
+        list(APPEND glfw_PKG_LIBS "-l${CMAKE_DL_LIBS}")
+    endif()
+endif()
+
+#--------------------------------------------------------------------
+# Use Boat for window creation
+#--------------------------------------------------------------------
+if (_GLFW_BOAT)
+    
+    # Set up library and include paths
+    list(APPEND glfw_INCLUDE_DIRS "${BOAT_BOAT_INCLUDE_PATH}")
+    list(APPEND glfw_LIBRARIES "${BOAT_BOAT_LIB}" "${CMAKE_THREAD_LIBS_INIT}")
+    list(APPEND glfw_PKG_LIBS "-lboat")
+
 endif()
 
 #--------------------------------------------------------------------

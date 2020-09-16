@@ -2,7 +2,11 @@
 add_library(glfw "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
                  "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h"
                  internal.h mappings.h context.c init.c input.c monitor.c
-                 vulkan.c window.c)
+                 window.c)
+
+if (!_GLFW_BOAT)
+    target_sources(glfw PRIVATE vulkan.c)
+endif()
 
 if (_GLFW_COCOA)
     target_sources(glfw PRIVATE cocoa_platform.h cocoa_joystick.h posix_thread.h
@@ -23,6 +27,12 @@ elseif (_GLFW_X11)
                                 x11_window.c xkb_unicode.c posix_time.c
                                 posix_thread.c glx_context.c egl_context.c
                                 osmesa_context.c)
+elseif (_GLFW_BOAT)
+    target_sources(glfw PRIVATE boat_platform.h null_joystick.h posix_time.h
+                                posix_thread.h egl_context.h osmesa_context.h
+                                boat_init.c boat_monitor.c boat_window.c 
+                                posix_time.c posix_thread.c egl_context.c 
+                                null_joystick.c osmesa_context.c)
 elseif (_GLFW_WAYLAND)
     target_sources(glfw PRIVATE wl_platform.h posix_time.h posix_thread.h
                                 xkb_unicode.h egl_context.h osmesa_context.h
@@ -83,13 +93,18 @@ target_sources(glfw PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/glfw_config.h")
 
 set_target_properties(glfw PROPERTIES
                       OUTPUT_NAME ${GLFW_LIB_NAME}
-                      VERSION ${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}
-                      SOVERSION ${GLFW_VERSION_MAJOR}
+                      # VERSION ${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}
+                      # SOVERSION ${GLFW_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
                       C_STANDARD 99
                       C_EXTENSIONS OFF
                       DEFINE_SYMBOL _GLFW_BUILD_DLL
                       FOLDER "GLFW3")
+if (!_GLFW_BOAT)
+    set_target_properties(glfw PROPERTIES
+                      VERSION ${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}
+                      SOVERSION ${GLFW_VERSION_MAJOR})
+endif()
 
 target_include_directories(glfw PUBLIC
                            "$<BUILD_INTERFACE:${GLFW_SOURCE_DIR}/include>"
