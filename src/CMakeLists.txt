@@ -2,11 +2,7 @@
 add_library(glfw "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
                  "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h"
                  internal.h mappings.h context.c init.c input.c monitor.c
-                 window.c)
-
-if (!_GLFW_BOAT)
-    target_sources(glfw PRIVATE vulkan.c)
-endif()
+                 window.c vulkan.c)
 
 if (_GLFW_COCOA)
     target_sources(glfw PRIVATE cocoa_platform.h cocoa_joystick.h posix_thread.h

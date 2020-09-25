@@ -224,4 +224,10 @@ GLFWbool _glfwChooseVisualEGL(const _GLFWwndconfig* wndconfig,
                               const _GLFWfbconfig* fbconfig,
                               Visual** visual, int* depth);
 #endif /*_GLFW_X11*/
+#if defined(_GLFW_BOAT)
+GLFWbool _glfwChooseVisualEGL(const _GLFWwndconfig* wndconfig,
+                              const _GLFWctxconfig* ctxconfig,
+                              const _GLFWfbconfig* fbconfig,
+                              int* visualID, int* depth);
+#endif /*_GLFW_BOAT*/
 

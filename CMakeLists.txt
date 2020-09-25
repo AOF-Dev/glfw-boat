@@ -149,15 +149,6 @@ if (GLFW_USE_BOAT)
         message(FATAL_ERROR "Math library not found!")
     endif()
     
-    find_library(ANDROID_LIBRARY android)
-    mark_as_advanced(ANDROID_LIBRARY)
-    if (ANDROID_LIBRARY)
-        list(APPEND glfw_LIBRARIES "${ANDROID_LIBRARY}")
-        list(APPEND glfw_PKG_LIBS "-landroid")
-    else()
-        message(FATAL_ERROR "Android library not found!")
-    endif()
-    
     find_library(LOG_LIBRARY log)
     mark_as_advanced(LOG_LIBRARY)
     if (LOG_LIBRARY)
@@ -180,8 +171,6 @@ if (_GLFW_BOAT)
     
     # Set up library and include paths
     list(APPEND glfw_INCLUDE_DIRS "${BOAT_BOAT_INCLUDE_PATH}")
-    list(APPEND glfw_LIBRARIES "${BOAT_BOAT_LIB}" "${CMAKE_THREAD_LIBS_INIT}")
-    list(APPEND glfw_PKG_LIBS "-lboat")
 
 endif()
 

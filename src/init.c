@@ -219,6 +219,11 @@ void _glfwInputError(int code, const char* format, ...)
 
     error->code = code;
     strcpy(error->description, description);
+    
+#if defined(_GLFW_BOAT)
+    __android_log_print(ANDROID_LOG_ERROR, "GLFW", "ERROR!\n");
+    __android_log_print(ANDROID_LOG_ERROR, "GLFW", "%s\n", description);
+#endif
 
     if (_glfwErrorCallback)
         _glfwErrorCallback(code, description);

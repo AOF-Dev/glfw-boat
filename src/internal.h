@@ -186,6 +186,8 @@ typedef void (APIENTRY * PFN_vkVoidFunction)(void);
  #include "win32_platform.h"
 #elif defined(_GLFW_X11)
  #include "x11_platform.h"
+#elif defined(_GLFW_BOAT)
+ #include "boat_platform.h"
 #elif defined(_GLFW_WAYLAND)
  #include "wl_platform.h"
 #elif defined(_GLFW_OSMESA)
@@ -361,8 +363,10 @@ struct _GLFWcontext
     _GLFWgetprocaddressfun      getProcAddress;
     _GLFWdestroycontextfun      destroy;
 
+#ifndef _GLFW_BOAT
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_CONTEXT_STATE;
+#endif
     // This is defined in egl_context.h
     _GLFWcontextEGL egl;
     // This is defined in osmesa_context.h
@@ -583,8 +587,10 @@ struct _GLFWlibrary
 
     // This is defined in the window API's platform.h
     _GLFW_PLATFORM_LIBRARY_WINDOW_STATE;
+#ifndef _GLFW_BOAT
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE;
+#endif
     // This is defined in the platform's joystick.h
     _GLFW_PLATFORM_LIBRARY_JOYSTICK_STATE;
     // This is defined in egl_context.h
