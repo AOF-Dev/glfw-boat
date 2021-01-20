@@ -320,8 +320,6 @@ int _glfwPlatformInit(void)
 
 void _glfwPlatformTerminate(void)
 {
-    free(_glfw.x11.primarySelectionString);
-    free(_glfw.x11.clipboardString);
     
     _glfwTerminateEGL();
 

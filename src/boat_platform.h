@@ -101,10 +101,6 @@ typedef struct _GLFWlibraryBoat
     float           contentScaleX, contentScaleY;
     // Most recent error code received by Boat error handler
     int             errorCode;
-    // Primary selection string (while the primary selection is owned)
-    char*           primarySelectionString;
-    // Clipboard string (while the selection is owned)
-    char*           clipboardString;
     // Key name string
     char            keynames[GLFW_KEY_LAST + 1][5];
     // Boat keycode to GLFW key LUT

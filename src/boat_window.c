@@ -75,20 +75,6 @@ static int translateKey(int scancode)
     return _glfw.boat.keycodes[scancode];
 }
 
-// Updates the normal hints according to the window settings
-//
-static void updateNormalHints(_GLFWwindow* window, int width, int height)
-{
-    
-}
-
-// Updates the full screen status of the window
-//
-static void updateWindowMode(_GLFWwindow* window)
-{
-    
-}
-
 // Updates the cursor image according to its cursor mode
 //
 static void updateCursorImage(_GLFWwindow* window)
@@ -317,8 +303,6 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
 
     window->boat.maximized = GLFW_TRUE;
 
-    //updateNormalHints(window, width, height);
-
     _glfwPlatformSetWindowTitle(window, wndconfig->title);
     _glfwPlatformGetWindowPos(window, &window->boat.xpos, &window->boat.ypos);
     _glfwPlatformGetWindowSize(window, &window->boat.width, &window->boat.height);
@@ -328,7 +312,6 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
 
     return GLFW_TRUE;
 }
-
 
 
 // Make the specified window and its video mode active on its monitor
@@ -359,7 +342,6 @@ static void releaseMonitor(_GLFWwindow* window)
     _glfwInputMonitorWindow(window->monitor, NULL);
     //_glfwRestoreVideoModeX11(window->monitor);
 
-    
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -402,8 +384,7 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
     if (window->monitor)
     {
         _glfwPlatformShowWindow(window);
-        updateWindowMode(window);
-        //acquireMonitor(window);
+        acquireMonitor(window);
     }
 
     return GLFW_TRUE;
@@ -426,7 +407,7 @@ void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 
 void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
 {
-    
+    // TODO
 }
 
 void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
@@ -458,6 +439,11 @@ void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
 
 void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height)
 {
+    if (window->monitor)
+    {
+        if (window->monitor->window == window)
+            acquireMonitor(window);
+    }
     
 }
 
@@ -544,7 +530,26 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
                                    int width, int height,
                                    int refreshRate)
 {
+    if (window->monitor == monitor)
+    {
+        if (monitor)
+        {
+            if (monitor->window == window)
+                acquireMonitor(window);
+        }
+
+        return;
+    }
+
+    if (window->monitor)
+        releaseMonitor(window);
+
+    _glfwInputWindowMonitor(window, monitor);
     
+    if (window->monitor)
+    {
+        acquireMonitor(window);
+    }
 
 }
 
@@ -576,17 +581,12 @@ int _glfwPlatformWindowHovered(_GLFWwindow* window)
 
 int _glfwPlatformFramebufferTransparent(_GLFWwindow* window)
 {
-    if (!window->boat.transparent)
-        return GLFW_FALSE;
-
     return GLFW_FALSE;
 }
 
 void _glfwPlatformSetWindowResizable(_GLFWwindow* window, GLFWbool enabled)
 {
-    int width, height;
-    _glfwPlatformGetWindowSize(window, &width, &height);
-    updateNormalHints(window, width, height);
+    
 }
 
 void _glfwPlatformSetWindowDecorated(_GLFWwindow* window, GLFWbool enabled)
@@ -688,8 +688,7 @@ void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
     // Store the new position so it can be recognized later
     window->boat.warpCursorPosX = (int) x;
     window->boat.warpCursorPosY = (int) y;
-    
-    // FIXME : should set cursor pos in Android view
+    boatSetCursorPos(x, y);
 }
 
 void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
@@ -705,7 +704,6 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
     else {
         //updateCursorImage(window);
     }
-
 }
 
 const char* _glfwPlatformGetScancodeName(int scancode)
@@ -718,7 +716,7 @@ const char* _glfwPlatformGetScancodeName(int scancode)
     }
     
     const int key = _glfw.boat.keycodes[scancode];
-    if (_glfw.boat.keynames[key][0] != 0) {
+    if (_glfw.boat.keynames[key][0] != '\0') {
         return _glfw.boat.keynames[key];
     }
     return NULL;
@@ -758,12 +756,12 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 
 void _glfwPlatformSetClipboardString(const char* string)
 {
-    
+    boatSetPrimaryClipString(copy);
 }
 
 const char* _glfwPlatformGetClipboardString(void)
 {
-    return "";//getSelectionString(_glfw.x11.CLIPBOARD);
+    return boatGetPrimaryClipString();
 }
 
 EGLenum _glfwPlatformGetEGLPlatform(EGLint** attribs)
@@ -778,10 +776,7 @@ EGLNativeDisplayType _glfwPlatformGetEGLNativeDisplay(void)
 
 EGLNativeWindowType _glfwPlatformGetEGLNativeWindow(_GLFWwindow* window)
 {
-    if (_glfw.egl.platform)
-        return &window->boat.handle;
-    else
-        return (EGLNativeWindowType) window->boat.handle;
+    return (EGLNativeWindowType) window->boat.handle;
 }
 
 void _glfwPlatformGetRequiredInstanceExtensions(char** extensions)
