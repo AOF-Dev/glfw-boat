@@ -240,8 +240,6 @@ int _glfwPlatformInit(void)
 
     // EGL_DEFAULT_DISPLAY = 0.
     _glfw.boat.display = boatGetNativeDisplay();
-    
-    _glfw.boat.screen = 0;
 
     getSystemContentScale(&_glfw.boat.contentScaleX, &_glfw.boat.contentScaleY);
 
@@ -256,7 +254,9 @@ int _glfwPlatformInit(void)
 
 void _glfwPlatformTerminate(void)
 {
-   
+    free(_glfw.x11.primarySelectionString);
+    free(_glfw.x11.clipboardString);
+    
     _glfwTerminateEGL();
 
     if (_glfw.boat.boatlib.handle)
