@@ -43,6 +43,7 @@ static void createKeyTables(void)
 
     memset(_glfw.boat.keycodes, -1, sizeof(_glfw.boat.keycodes));
     memset(_glfw.boat.scancodes, -1, sizeof(_glfw.boat.scancodes));
+    memset(_glfw.boat.keynames, 0, sizeof(_glfw.boat.keynames));
 
     _glfw.boat.keycodes[BOAT_KEY_GRAVE]      = GLFW_KEY_GRAVE_ACCENT;
     _glfw.boat.keycodes[BOAT_KEY_1]          = GLFW_KEY_1;
@@ -168,6 +169,71 @@ static void createKeyTables(void)
         if (_glfw.boat.keycodes[scancode] > 0)
             _glfw.boat.scancodes[_glfw.boat.keycodes[scancode]] = scancode;
     }
+    
+    strcpy(_glfw.boat.keynames[GLFW_KEY_APOSTROPHE], "'");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_COMMA], ",");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_MINUS], "-");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_SUBTRACT], "-");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_PERIOD], ".");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_DECIMAL], ".");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_SLASH], "/");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_DIVIDE], "/");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_SEMICOLON], ";");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_EQUAL], "=");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_EQUAL], "=");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_LEFT_BRACKET], "[");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_RIGHT_BRACKET], "]");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_MULTIPLY], "*");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_ADD], "+");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_BACKSLASH], "\\");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_WORLD_1], "\\");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_WORLD_2], "\\");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_0], "0");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_0], "0");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_1], "1");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_1], "1");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_2], "2");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_2], "2");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_3], "3");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_3], "3");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_4], "4");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_4], "4");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_5], "5");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_5], "5");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_6], "6");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_6], "6");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_7], "7");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_7], "7");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_8], "8");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_8], "8");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_9], "9");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_9], "9");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_A], "a");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_B], "b");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_C], "c");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_D], "d");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_E], "e");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_F], "f");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_G], "g");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_H], "h");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_I], "i");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_J], "j");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_K], "k");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_L], "l");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_M], "m");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_N], "n");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_O], "o");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_P], "p");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Q], "q");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_R], "r");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_S], "s");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_T], "t");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_U], "u");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_V], "v");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_W], "w");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_X], "x");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Y], "y");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Z], "z");
 
 }
 
