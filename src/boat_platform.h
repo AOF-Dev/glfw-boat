@@ -138,10 +138,7 @@ typedef struct _GLFWlibraryBoat
 //
 typedef struct _GLFWmonitorBoat
 {
-
-    // Index of screen. Useless
-    int             index;
-
+    GLFWgammaramp   ramp;
 } _GLFWmonitorBoat;
 
 // Boat-specific per-cursor data

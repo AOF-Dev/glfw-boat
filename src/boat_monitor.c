@@ -39,7 +39,12 @@
 //
 void _glfwPollMonitorsBoat(void)
 {
-    // do nothing
+    ANativeWindow* window = boatGetNativeWindow();
+    const float dpi = 141.f;
+    _GLFWmonitor* monitor = _glfwAllocMonitor("Boat Monitor 0",
+                                              (int) (ANativeWindow_getWidth(window) * 25.4f / dpi),
+                                              (int) (ANativeWindow_getHeight(window) * 25.4f / dpi));
+    _glfwInputMonitor(monitor, GLFW_CONNECTED, _GLFW_INSERT_FIRST);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,6 +53,7 @@ void _glfwPollMonitorsBoat(void)
 
 void _glfwPlatformFreeMonitor(_GLFWmonitor* monitor)
 {
+    _glfwFreeGammaArrays(&monitor->boat.ramp);
 }
 
 void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos)
@@ -108,10 +114,41 @@ void _glfwPlatformGetVideoMode(_GLFWmonitor* monitor, GLFWvidmode* mode)
 
 GLFWbool _glfwPlatformGetGammaRamp(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
 {
-    return GLFW_FALSE;
+    if (!monitor->boat.ramp.size)
+    {
+        _glfwAllocGammaArrays(&monitor->boat.ramp, 256);
+
+        for (unsigned int i = 0;  i < monitor->boat.ramp.size;  i++)
+        {
+            const float gamma = 2.2f;
+            float value;
+            value = i / (float) (monitor->boat.ramp.size - 1);
+            value = powf(value, 1.f / gamma) * 65535.f + 0.5f;
+            value = _glfw_fminf(value, 65535.f);
+
+            monitor->boat.ramp.red[i]   = (unsigned short) value;
+            monitor->boat.ramp.green[i] = (unsigned short) value;
+            monitor->boat.ramp.blue[i]  = (unsigned short) value;
+        }
+    }
+
+    _glfwAllocGammaArrays(ramp, monitor->boat.ramp.size);
+    memcpy(ramp->red,   monitor->boat.ramp.red,   sizeof(short) * ramp->size);
+    memcpy(ramp->green, monitor->boat.ramp.green, sizeof(short) * ramp->size);
+    memcpy(ramp->blue,  monitor->boat.ramp.blue,  sizeof(short) * ramp->size);
+    return GLFW_TRUE;
 }
 
 void _glfwPlatformSetGammaRamp(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
 {
-    // do nothing
+    if (monitor->boat.ramp.size != ramp->size)
+    {
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Boat: Gamma ramp size must match current ramp size");
+        return;
+    }
+
+    memcpy(monitor->boat.ramp.red,   ramp->red,   sizeof(short) * ramp->size);
+    memcpy(monitor->boat.ramp.green, ramp->green, sizeof(short) * ramp->size);
+    memcpy(monitor->boat.ramp.blue,  ramp->blue,  sizeof(short) * ramp->size);
 }
