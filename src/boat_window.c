@@ -756,7 +756,7 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 
 void _glfwPlatformSetClipboardString(const char* string)
 {
-    boatSetPrimaryClipString(copy);
+    boatSetPrimaryClipString(string);
 }
 
 const char* _glfwPlatformGetClipboardString(void)

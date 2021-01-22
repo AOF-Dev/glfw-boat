@@ -38,11 +38,17 @@ typedef void* (* PFN_BoatGetNativeDisplay)();
 typedef void (* PFN_BoatSetCurrentEventProcessor)(BoatEventProcessor);
 typedef void (* PFN_BoatGetCurrentEvent)(BoatInputEvent*);
 typedef void (* PFN_BoatSetCursorMode)(int);
+typedef void (* PFN_BoatSetCursorPos)(int, int);
+typedef void (* PFN_BoatSetPrimaryClipString)(const char*);
+typedef const char* (* PFN_BoatGetPrimaryClipString)();
 #define boatGetNativeWindow _glfw.boat.boatlib.GetNativeWindow
 #define boatGetNativeDisplay _glfw.boat.boatlib.GetNativeDisplay
 #define boatSetCurrentEventProcessor _glfw.boat.boatlib.SetCurrentEventProcessor
 #define boatGetCurrentEvent _glfw.boat.boatlib.GetCurrentEvent
 #define boatSetCursorMode _glfw.boat.boatlib.SetCursorMode
+#define boatSetCursorPos _glfw.boat.boatlib.SetCursorPos
+#define boatSetPrimaryClipString _glfw.boat.boatlib.SetPrimaryClipString
+#define boatGetPrimaryClipString _glfw.boat.boatlib.GetPrimaryClipString
 
 typedef int (* PFN_ANativeWindowGetWidth)(ANativeWindow*);
 typedef int (* PFN_ANativeWindowGetHeight)(ANativeWindow*);
@@ -119,6 +125,9 @@ typedef struct _GLFWlibraryBoat
         PFN_BoatSetCurrentEventProcessor SetCurrentEventProcessor;
         PFN_BoatGetCurrentEvent GetCurrentEvent;
         PFN_BoatSetCursorMode SetCursorMode;
+        PFN_BoatSetCursorPos SetCursorPos;
+        PFN_BoatGetPrimaryClipString GetPrimaryClipString;
+        PFN_BoatSetPrimaryClipString SetPrimaryClipString;
     } boatlib;
     
     struct {

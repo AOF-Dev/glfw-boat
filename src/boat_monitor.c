@@ -30,6 +30,7 @@
 #include "internal.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
