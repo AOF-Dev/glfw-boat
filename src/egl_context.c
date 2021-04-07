@@ -95,34 +95,11 @@ static GLFWbool chooseEGLConfig(const _GLFWctxconfig* ctxconfig,
     _GLFWfbconfig* usableConfigs;
     const _GLFWfbconfig* closest;
     int i, nativeCount, usableCount;
-    
-#if defined(_GLFW_BOAT)  
-    _GLFWfbconfig* fbcfg;
-    
-    fbcfg = calloc(1, sizeof(_GLFWfbconfig));
-    memcpy(fbcfg, desired, sizeof(_GLFWfbconfig));
-    
-    fbcfg->redBits = 8;
-    fbcfg->greenBits = 8;
-    fbcfg->blueBits = 8;
-    fbcfg->alphaBits = 0;
-    fbcfg->depthBits = 16;
-    fbcfg->stencilBits = 0;
-    fbcfg->accumRedBits = 0;
-    fbcfg->accumGreenBits = 0;
-    fbcfg->accumBlueBits = 0;
-    fbcfg->accumAlphaBits = 0;
-    
-    desired = fbcfg;
-#endif    //_GLFW_BOAT
 
     eglGetConfigs(_glfw.egl.display, NULL, 0, &nativeCount);
     if (!nativeCount)
     {
         _glfwInputError(GLFW_API_UNAVAILABLE, "EGL: No EGLConfigs returned");
-#if defined(_GLFW_BOAT)  
-        free(fbcfg);
-#endif    //_GLFW_BOAT
         return GLFW_FALSE;
     }
 
@@ -167,7 +144,7 @@ static GLFWbool chooseEGLConfig(const _GLFWctxconfig* ctxconfig,
             }
         }
 #endif // _GLFW_X11
-#if !defined(_GLFW_BOAT)
+
         if (ctxconfig->client == GLFW_OPENGL_ES_API)
         {
             if (ctxconfig->major == 1)
@@ -186,10 +163,7 @@ static GLFWbool chooseEGLConfig(const _GLFWctxconfig* ctxconfig,
             if (!(getEGLConfigAttrib(n, EGL_RENDERABLE_TYPE) & EGL_OPENGL_BIT))
                 continue;
         }
-#else
-        if (!(getEGLConfigAttrib(n, EGL_RENDERABLE_TYPE) & EGL_OPENGL_ES2_BIT))
-            continue;
-#endif
+
         u->redBits = getEGLConfigAttrib(n, EGL_RED_SIZE);
         u->greenBits = getEGLConfigAttrib(n, EGL_GREEN_SIZE);
         u->blueBits = getEGLConfigAttrib(n, EGL_BLUE_SIZE);
@@ -211,9 +185,6 @@ static GLFWbool chooseEGLConfig(const _GLFWctxconfig* ctxconfig,
 
     free(nativeConfigs);
     free(usableConfigs);
-#if defined(_GLFW_BOAT)  
-    free(fbcfg);
-#endif    //_GLFW_BOAT
 
     return closest != NULL;
 }
@@ -232,6 +203,8 @@ static void makeContextCurrentEGL(_GLFWwindow* window)
                             getEGLErrorString(eglGetError()));
             return;
         }
+        printf("eglGetError() : %d\n", eglGetError());
+        fflush(stdout);
     }
     else
     {
@@ -345,8 +318,6 @@ GLFWbool _glfwInitEGL(void)
         "libEGL.dylib",
 #elif defined(__CYGWIN__)
         "libEGL-1.so",
-#elif defined(_GLFW_BOAT)
-        "libEGL.so",
 #else
         "libEGL.so.1",
 #endif
@@ -558,7 +529,7 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
                         "EGL: Failed to find a suitable EGLConfig");
         return GLFW_FALSE;
     }
-#if !defined(_GLFW_BOAT)
+
     if (ctxconfig->client == GLFW_OPENGL_ES_API)
     {
         if (!eglBindAPI(EGL_OPENGL_ES_API))
@@ -579,10 +550,7 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
             return GLFW_FALSE;
         }
     }
-#else // _GLFW_BOAT
-    // do nothing
 
-#endif // _GLFW_BOAT
     if (_glfw.egl.KHR_create_context)
     {
         int mask = 0, flags = 0;
@@ -637,12 +605,8 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
     }
     else
     {
-#if !defined(_GLFW_BOAT)
         if (ctxconfig->client == GLFW_OPENGL_ES_API)
             setAttrib(EGL_CONTEXT_CLIENT_VERSION, ctxconfig->major);
-#else
-        setAttrib(EGL_CONTEXT_CLIENT_VERSION, 2);
-#endif
     }
 
     if (_glfw.egl.KHR_context_flush_control)
@@ -721,8 +685,6 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
             "libGLES_CM.dll",
 #elif defined(_GLFW_COCOA)
             "libGLESv1_CM.dylib",
-#elif defined(_GLFW_BOAT)
-        "libGLESv1_CM.so",
 #else
             "libGLESv1_CM.so.1",
             "libGLES_CM.so.1",
@@ -740,8 +702,6 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
             "libGLESv2.dylib",
 #elif defined(__CYGWIN__)
             "libGLESv2-2.so",
-#elif defined(_GLFW_BOAT)
-        "libGLESv2.so",
 #else
             "libGLESv2.so.2",
 #endif
