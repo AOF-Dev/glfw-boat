@@ -203,8 +203,6 @@ static void makeContextCurrentEGL(_GLFWwindow* window)
                             getEGLErrorString(eglGetError()));
             return;
         }
-        printf("eglGetError() : %d\n", eglGetError());
-        fflush(stdout);
     }
     else
     {
