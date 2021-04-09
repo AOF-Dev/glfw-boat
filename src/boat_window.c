@@ -358,16 +358,24 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
 
     if (ctxconfig->client != GLFW_NO_API)
     {
-        if (!_glfwInitEGL())
-            return GLFW_FALSE;
-        if (!_glfwChooseVisualEGL(wndconfig, ctxconfig, fbconfig, &visualID, &depth))
-            return GLFW_FALSE;
+        if (ctxconfig->source == GLFW_NATIVE_CONTEXT_API || ctxconfig->source == GLFW_EGL_CONTEXT_API)
+        {
+            if (!_glfwInitEGL())
+                return GLFW_FALSE;
+            if (!_glfwChooseVisualEGL(wndconfig, ctxconfig, fbconfig, &visualID, &depth))
+                return GLFW_FALSE;
+        }
+        else if (ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
+        {
+            if (!_glfwInitOSMesa())
+                return GLFW_FALSE;
+        }
     }
 
     if (ctxconfig->client == GLFW_NO_API ||
         ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
     {
-        visualID = 0;
+        visualID = 1;
         depth = 16;
     }
 
@@ -376,9 +384,16 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
 
     if (ctxconfig->client != GLFW_NO_API)
     {
-        
-        if (!_glfwCreateContextEGL(window, ctxconfig, fbconfig))
-            return GLFW_FALSE;
+        if (ctxconfig->source == GLFW_NATIVE_CONTEXT_API || ctxconfig->source == GLFW_EGL_CONTEXT_API)
+        {
+            if (!_glfwCreateContextEGL(window, ctxconfig, fbconfig))
+                return GLFW_FALSE;
+        }
+        else if (ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
+        {
+            if (!_glfwCreateContextOSMesa(window, ctxconfig, fbconfig))
+                return GLFW_FALSE;
+        }
     }
 
     if (window->monitor)
