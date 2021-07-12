@@ -802,30 +802,6 @@ GLFWbool _glfwChooseVisualEGL(const _GLFWwndconfig* wndconfig,
 }
 #endif // _GLFW_X11
 
-#if defined(_GLFW_BOAT)
-GLFWbool _glfwChooseVisualEGL(const _GLFWwndconfig* wndconfig,
-                              const _GLFWctxconfig* ctxconfig,
-                              const _GLFWfbconfig* fbconfig,
-                              int* visualID, int* depth)
-{
-    EGLConfig native;
-
-    if (!chooseEGLConfig(ctxconfig, fbconfig, &native))
-    {
-        _glfwInputError(GLFW_FORMAT_UNAVAILABLE,
-                        "EGL: Failed to find a suitable EGLConfig");
-        return GLFW_FALSE;
-    }
-
-    eglGetConfigAttrib(_glfw.egl.display, native,
-                       EGL_NATIVE_VISUAL_ID, visualID);
-                       
-    eglGetConfigAttrib(_glfw.egl.display, native,
-                       EGL_DEPTH_SIZE, depth);
-
-    return GLFW_TRUE;
-}
-#endif // _GLFW_BOAT
 
 //////////////////////////////////////////////////////////////////////////
 //////                        GLFW native API                       //////
