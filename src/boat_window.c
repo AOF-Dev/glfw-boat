@@ -2885,37 +2885,20 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 
 const char* _glfwPlatformGetScancodeName(int scancode)
 {
-    if (!_glfw.x11.xkb.available)
-        return NULL;
-
     if (scancode < 0 || scancode > 0xff ||
-        _glfw.x11.keycodes[scancode] == GLFW_KEY_UNKNOWN)
+        _glfw.boat.keycodes[scancode] == GLFW_KEY_UNKNOWN)
     {
         _glfwInputError(GLFW_INVALID_VALUE, "Invalid scancode");
         return NULL;
     }
 
-    const int key = _glfw.x11.keycodes[scancode];
-    const KeySym keysym = XkbKeycodeToKeysym(_glfw.x11.display,
-                                             scancode, _glfw.x11.xkb.group, 0);
-    if (keysym == NoSymbol)
-        return NULL;
-
-    const long ch = _glfwKeySym2Unicode(keysym);
-    if (ch == -1)
-        return NULL;
-
-    const size_t count = encodeUTF8(_glfw.x11.keynames[key], (unsigned int) ch);
-    if (count == 0)
-        return NULL;
-
-    _glfw.x11.keynames[key][count] = '\0';
-    return _glfw.x11.keynames[key];
+    const int key = _glfw.boat.keycodes[scancode];
+    return _glfw.boat.keynames[key];
 }
 
 int _glfwPlatformGetKeyScancode(int key)
 {
-    return _glfw.x11.scancodes[key];
+    return _glfw.boat.scancodes[key];
 }
 
 int _glfwPlatformCreateCursor(_GLFWcursor* cursor,
