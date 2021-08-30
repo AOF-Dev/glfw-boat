@@ -3152,42 +3152,10 @@ VkResult _glfwPlatformCreateWindowSurface(VkInstance instance,
 //////                        GLFW native API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI Display* glfwGetX11Display(void)
-{
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return _glfw.x11.display;
-}
-
-GLFWAPI Window glfwGetX11Window(GLFWwindow* handle)
+GLFWAPI ANativeWindow* glfwGetBoatWindow(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(None);
-    return window->x11.handle;
-}
-
-GLFWAPI void glfwSetX11SelectionString(const char* string)
-{
-    _GLFW_REQUIRE_INIT();
-
-    free(_glfw.x11.primarySelectionString);
-    _glfw.x11.primarySelectionString = _glfw_strdup(string);
-
-    XSetSelectionOwner(_glfw.x11.display,
-                       _glfw.x11.PRIMARY,
-                       _glfw.x11.helperWindowHandle,
-                       CurrentTime);
-
-    if (XGetSelectionOwner(_glfw.x11.display, _glfw.x11.PRIMARY) !=
-        _glfw.x11.helperWindowHandle)
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Failed to become owner of primary selection");
-    }
-}
-
-GLFWAPI const char* glfwGetX11SelectionString(void)
-{
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return getSelectionString(_glfw.x11.PRIMARY);
+    return window->boat.handle;
 }
 
