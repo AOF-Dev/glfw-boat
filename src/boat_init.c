@@ -39,265 +39,212 @@
 
 
 // Create key code translation tables
+// derived from wl_init.c
 //
 static void createKeyTables(void)
 {
-    int scancode, scancodeMin, scancodeMax;
+    int scancode;
 
-    memset(_glfw.x11.keycodes, -1, sizeof(_glfw.x11.keycodes));
-    memset(_glfw.x11.scancodes, -1, sizeof(_glfw.x11.scancodes));
+    memset(_glfw.boat.keycodes, -1, sizeof(_glfw.boat.keycodes));
+    memset(_glfw.boat.scancodes, -1, sizeof(_glfw.boat.scancodes));
 
-    if (_glfw.x11.xkb.available)
+    _glfw.boat.keycodes[KEY_GRAVE]      = GLFW_KEY_GRAVE_ACCENT;
+    _glfw.boat.keycodes[KEY_1]          = GLFW_KEY_1;
+    _glfw.boat.keycodes[KEY_2]          = GLFW_KEY_2;
+    _glfw.boat.keycodes[KEY_3]          = GLFW_KEY_3;
+    _glfw.boat.keycodes[KEY_4]          = GLFW_KEY_4;
+    _glfw.boat.keycodes[KEY_5]          = GLFW_KEY_5;
+    _glfw.boat.keycodes[KEY_6]          = GLFW_KEY_6;
+    _glfw.boat.keycodes[KEY_7]          = GLFW_KEY_7;
+    _glfw.boat.keycodes[KEY_8]          = GLFW_KEY_8;
+    _glfw.boat.keycodes[KEY_9]          = GLFW_KEY_9;
+    _glfw.boat.keycodes[KEY_0]          = GLFW_KEY_0;
+    _glfw.boat.keycodes[KEY_SPACE]      = GLFW_KEY_SPACE;
+    _glfw.boat.keycodes[KEY_MINUS]      = GLFW_KEY_MINUS;
+    _glfw.boat.keycodes[KEY_EQUAL]      = GLFW_KEY_EQUAL;
+    _glfw.boat.keycodes[KEY_Q]          = GLFW_KEY_Q;
+    _glfw.boat.keycodes[KEY_W]          = GLFW_KEY_W;
+    _glfw.boat.keycodes[KEY_E]          = GLFW_KEY_E;
+    _glfw.boat.keycodes[KEY_R]          = GLFW_KEY_R;
+    _glfw.boat.keycodes[KEY_T]          = GLFW_KEY_T;
+    _glfw.boat.keycodes[KEY_Y]          = GLFW_KEY_Y;
+    _glfw.boat.keycodes[KEY_U]          = GLFW_KEY_U;
+    _glfw.boat.keycodes[KEY_I]          = GLFW_KEY_I;
+    _glfw.boat.keycodes[KEY_O]          = GLFW_KEY_O;
+    _glfw.boat.keycodes[KEY_P]          = GLFW_KEY_P;
+    _glfw.boat.keycodes[KEY_LEFTBRACE]  = GLFW_KEY_LEFT_BRACKET;
+    _glfw.boat.keycodes[KEY_RIGHTBRACE] = GLFW_KEY_RIGHT_BRACKET;
+    _glfw.boat.keycodes[KEY_A]          = GLFW_KEY_A;
+    _glfw.boat.keycodes[KEY_S]          = GLFW_KEY_S;
+    _glfw.boat.keycodes[KEY_D]          = GLFW_KEY_D;
+    _glfw.boat.keycodes[KEY_F]          = GLFW_KEY_F;
+    _glfw.boat.keycodes[KEY_G]          = GLFW_KEY_G;
+    _glfw.boat.keycodes[KEY_H]          = GLFW_KEY_H;
+    _glfw.boat.keycodes[KEY_J]          = GLFW_KEY_J;
+    _glfw.boat.keycodes[KEY_K]          = GLFW_KEY_K;
+    _glfw.boat.keycodes[KEY_L]          = GLFW_KEY_L;
+    _glfw.boat.keycodes[KEY_SEMICOLON]  = GLFW_KEY_SEMICOLON;
+    _glfw.boat.keycodes[KEY_APOSTROPHE] = GLFW_KEY_APOSTROPHE;
+    _glfw.boat.keycodes[KEY_Z]          = GLFW_KEY_Z;
+    _glfw.boat.keycodes[KEY_X]          = GLFW_KEY_X;
+    _glfw.boat.keycodes[KEY_C]          = GLFW_KEY_C;
+    _glfw.boat.keycodes[KEY_V]          = GLFW_KEY_V;
+    _glfw.boat.keycodes[KEY_B]          = GLFW_KEY_B;
+    _glfw.boat.keycodes[KEY_N]          = GLFW_KEY_N;
+    _glfw.boat.keycodes[KEY_M]          = GLFW_KEY_M;
+    _glfw.boat.keycodes[KEY_COMMA]      = GLFW_KEY_COMMA;
+    _glfw.boat.keycodes[KEY_DOT]        = GLFW_KEY_PERIOD;
+    _glfw.boat.keycodes[KEY_SLASH]      = GLFW_KEY_SLASH;
+    _glfw.boat.keycodes[KEY_BACKSLASH]  = GLFW_KEY_BACKSLASH;
+    _glfw.boat.keycodes[KEY_ESC]        = GLFW_KEY_ESCAPE;
+    _glfw.boat.keycodes[KEY_TAB]        = GLFW_KEY_TAB;
+    _glfw.boat.keycodes[KEY_LEFTSHIFT]  = GLFW_KEY_LEFT_SHIFT;
+    _glfw.boat.keycodes[KEY_RIGHTSHIFT] = GLFW_KEY_RIGHT_SHIFT;
+    _glfw.boat.keycodes[KEY_LEFTCTRL]   = GLFW_KEY_LEFT_CONTROL;
+    _glfw.boat.keycodes[KEY_RIGHTCTRL]  = GLFW_KEY_RIGHT_CONTROL;
+    _glfw.boat.keycodes[KEY_LEFTALT]    = GLFW_KEY_LEFT_ALT;
+    _glfw.boat.keycodes[KEY_RIGHTALT]   = GLFW_KEY_RIGHT_ALT;
+    _glfw.boat.keycodes[KEY_LEFTMETA]   = GLFW_KEY_LEFT_SUPER;
+    _glfw.boat.keycodes[KEY_RIGHTMETA]  = GLFW_KEY_RIGHT_SUPER;
+    _glfw.boat.keycodes[KEY_MENU]       = GLFW_KEY_MENU;
+    _glfw.boat.keycodes[KEY_NUMLOCK]    = GLFW_KEY_NUM_LOCK;
+    _glfw.boat.keycodes[KEY_CAPSLOCK]   = GLFW_KEY_CAPS_LOCK;
+    _glfw.boat.keycodes[KEY_PRINT]      = GLFW_KEY_PRINT_SCREEN;
+    _glfw.boat.keycodes[KEY_SCROLLLOCK] = GLFW_KEY_SCROLL_LOCK;
+    _glfw.boat.keycodes[KEY_PAUSE]      = GLFW_KEY_PAUSE;
+    _glfw.boat.keycodes[KEY_DELETE]     = GLFW_KEY_DELETE;
+    _glfw.boat.keycodes[KEY_BACKSPACE]  = GLFW_KEY_BACKSPACE;
+    _glfw.boat.keycodes[KEY_ENTER]      = GLFW_KEY_ENTER;
+    _glfw.boat.keycodes[KEY_HOME]       = GLFW_KEY_HOME;
+    _glfw.boat.keycodes[KEY_END]        = GLFW_KEY_END;
+    _glfw.boat.keycodes[KEY_PAGEUP]     = GLFW_KEY_PAGE_UP;
+    _glfw.boat.keycodes[KEY_PAGEDOWN]   = GLFW_KEY_PAGE_DOWN;
+    _glfw.boat.keycodes[KEY_INSERT]     = GLFW_KEY_INSERT;
+    _glfw.boat.keycodes[KEY_LEFT]       = GLFW_KEY_LEFT;
+    _glfw.boat.keycodes[KEY_RIGHT]      = GLFW_KEY_RIGHT;
+    _glfw.boat.keycodes[KEY_DOWN]       = GLFW_KEY_DOWN;
+    _glfw.boat.keycodes[KEY_UP]         = GLFW_KEY_UP;
+    _glfw.boat.keycodes[KEY_F1]         = GLFW_KEY_F1;
+    _glfw.boat.keycodes[KEY_F2]         = GLFW_KEY_F2;
+    _glfw.boat.keycodes[KEY_F3]         = GLFW_KEY_F3;
+    _glfw.boat.keycodes[KEY_F4]         = GLFW_KEY_F4;
+    _glfw.boat.keycodes[KEY_F5]         = GLFW_KEY_F5;
+    _glfw.boat.keycodes[KEY_F6]         = GLFW_KEY_F6;
+    _glfw.boat.keycodes[KEY_F7]         = GLFW_KEY_F7;
+    _glfw.boat.keycodes[KEY_F8]         = GLFW_KEY_F8;
+    _glfw.boat.keycodes[KEY_F9]         = GLFW_KEY_F9;
+    _glfw.boat.keycodes[KEY_F10]        = GLFW_KEY_F10;
+    _glfw.boat.keycodes[KEY_F11]        = GLFW_KEY_F11;
+    _glfw.boat.keycodes[KEY_F12]        = GLFW_KEY_F12;
+    _glfw.boat.keycodes[KEY_F13]        = GLFW_KEY_F13;
+    _glfw.boat.keycodes[KEY_F14]        = GLFW_KEY_F14;
+    _glfw.boat.keycodes[KEY_F15]        = GLFW_KEY_F15;
+    _glfw.boat.keycodes[KEY_F16]        = GLFW_KEY_F16;
+    _glfw.boat.keycodes[KEY_F17]        = GLFW_KEY_F17;
+    _glfw.boat.keycodes[KEY_F18]        = GLFW_KEY_F18;
+    _glfw.boat.keycodes[KEY_F19]        = GLFW_KEY_F19;
+    _glfw.boat.keycodes[KEY_F20]        = GLFW_KEY_F20;
+    _glfw.boat.keycodes[KEY_F21]        = GLFW_KEY_F21;
+    _glfw.boat.keycodes[KEY_F22]        = GLFW_KEY_F22;
+    _glfw.boat.keycodes[KEY_F23]        = GLFW_KEY_F23;
+    _glfw.boat.keycodes[KEY_F24]        = GLFW_KEY_F24;
+    _glfw.boat.keycodes[KEY_KPSLASH]    = GLFW_KEY_KP_DIVIDE;
+    _glfw.boat.keycodes[KEY_KPASTERISK] = GLFW_KEY_KP_MULTIPLY;
+    _glfw.boat.keycodes[KEY_KPMINUS]    = GLFW_KEY_KP_SUBTRACT;
+    _glfw.boat.keycodes[KEY_KPPLUS]     = GLFW_KEY_KP_ADD;
+    _glfw.boat.keycodes[KEY_KP0]        = GLFW_KEY_KP_0;
+    _glfw.boat.keycodes[KEY_KP1]        = GLFW_KEY_KP_1;
+    _glfw.boat.keycodes[KEY_KP2]        = GLFW_KEY_KP_2;
+    _glfw.boat.keycodes[KEY_KP3]        = GLFW_KEY_KP_3;
+    _glfw.boat.keycodes[KEY_KP4]        = GLFW_KEY_KP_4;
+    _glfw.boat.keycodes[KEY_KP5]        = GLFW_KEY_KP_5;
+    _glfw.boat.keycodes[KEY_KP6]        = GLFW_KEY_KP_6;
+    _glfw.boat.keycodes[KEY_KP7]        = GLFW_KEY_KP_7;
+    _glfw.boat.keycodes[KEY_KP8]        = GLFW_KEY_KP_8;
+    _glfw.boat.keycodes[KEY_KP9]        = GLFW_KEY_KP_9;
+    _glfw.boat.keycodes[KEY_KPEQUAL]    = GLFW_KEY_KP_EQUAL;
+    _glfw.boat.keycodes[KEY_KPENTER]    = GLFW_KEY_KP_ENTER;
+    _glfw.boat.keycodes[KEY_KPDOT]      = GLFW_KEY_KP_DECIMAL;
+
+    for (scancode = 0;  scancode < 256;  scancode++)
     {
-        // Use XKB to determine physical key locations independently of the
-        // current keyboard layout
-
-        XkbDescPtr desc = XkbGetMap(_glfw.x11.display, 0, XkbUseCoreKbd);
-        XkbGetNames(_glfw.x11.display, XkbKeyNamesMask | XkbKeyAliasesMask, desc);
-
-        scancodeMin = desc->min_key_code;
-        scancodeMax = desc->max_key_code;
-
-        const struct
-        {
-            int key;
-            char* name;
-        } keymap[] =
-        {
-            { GLFW_KEY_GRAVE_ACCENT, "TLDE" },
-            { GLFW_KEY_1, "AE01" },
-            { GLFW_KEY_2, "AE02" },
-            { GLFW_KEY_3, "AE03" },
-            { GLFW_KEY_4, "AE04" },
-            { GLFW_KEY_5, "AE05" },
-            { GLFW_KEY_6, "AE06" },
-            { GLFW_KEY_7, "AE07" },
-            { GLFW_KEY_8, "AE08" },
-            { GLFW_KEY_9, "AE09" },
-            { GLFW_KEY_0, "AE10" },
-            { GLFW_KEY_MINUS, "AE11" },
-            { GLFW_KEY_EQUAL, "AE12" },
-            { GLFW_KEY_Q, "AD01" },
-            { GLFW_KEY_W, "AD02" },
-            { GLFW_KEY_E, "AD03" },
-            { GLFW_KEY_R, "AD04" },
-            { GLFW_KEY_T, "AD05" },
-            { GLFW_KEY_Y, "AD06" },
-            { GLFW_KEY_U, "AD07" },
-            { GLFW_KEY_I, "AD08" },
-            { GLFW_KEY_O, "AD09" },
-            { GLFW_KEY_P, "AD10" },
-            { GLFW_KEY_LEFT_BRACKET, "AD11" },
-            { GLFW_KEY_RIGHT_BRACKET, "AD12" },
-            { GLFW_KEY_A, "AC01" },
-            { GLFW_KEY_S, "AC02" },
-            { GLFW_KEY_D, "AC03" },
-            { GLFW_KEY_F, "AC04" },
-            { GLFW_KEY_G, "AC05" },
-            { GLFW_KEY_H, "AC06" },
-            { GLFW_KEY_J, "AC07" },
-            { GLFW_KEY_K, "AC08" },
-            { GLFW_KEY_L, "AC09" },
-            { GLFW_KEY_SEMICOLON, "AC10" },
-            { GLFW_KEY_APOSTROPHE, "AC11" },
-            { GLFW_KEY_Z, "AB01" },
-            { GLFW_KEY_X, "AB02" },
-            { GLFW_KEY_C, "AB03" },
-            { GLFW_KEY_V, "AB04" },
-            { GLFW_KEY_B, "AB05" },
-            { GLFW_KEY_N, "AB06" },
-            { GLFW_KEY_M, "AB07" },
-            { GLFW_KEY_COMMA, "AB08" },
-            { GLFW_KEY_PERIOD, "AB09" },
-            { GLFW_KEY_SLASH, "AB10" },
-            { GLFW_KEY_BACKSLASH, "BKSL" },
-            { GLFW_KEY_WORLD_1, "LSGT" },
-            { GLFW_KEY_SPACE, "SPCE" },
-            { GLFW_KEY_ESCAPE, "ESC" },
-            { GLFW_KEY_ENTER, "RTRN" },
-            { GLFW_KEY_TAB, "TAB" },
-            { GLFW_KEY_BACKSPACE, "BKSP" },
-            { GLFW_KEY_INSERT, "INS" },
-            { GLFW_KEY_DELETE, "DELE" },
-            { GLFW_KEY_RIGHT, "RGHT" },
-            { GLFW_KEY_LEFT, "LEFT" },
-            { GLFW_KEY_DOWN, "DOWN" },
-            { GLFW_KEY_UP, "UP" },
-            { GLFW_KEY_PAGE_UP, "PGUP" },
-            { GLFW_KEY_PAGE_DOWN, "PGDN" },
-            { GLFW_KEY_HOME, "HOME" },
-            { GLFW_KEY_END, "END" },
-            { GLFW_KEY_CAPS_LOCK, "CAPS" },
-            { GLFW_KEY_SCROLL_LOCK, "SCLK" },
-            { GLFW_KEY_NUM_LOCK, "NMLK" },
-            { GLFW_KEY_PRINT_SCREEN, "PRSC" },
-            { GLFW_KEY_PAUSE, "PAUS" },
-            { GLFW_KEY_F1, "FK01" },
-            { GLFW_KEY_F2, "FK02" },
-            { GLFW_KEY_F3, "FK03" },
-            { GLFW_KEY_F4, "FK04" },
-            { GLFW_KEY_F5, "FK05" },
-            { GLFW_KEY_F6, "FK06" },
-            { GLFW_KEY_F7, "FK07" },
-            { GLFW_KEY_F8, "FK08" },
-            { GLFW_KEY_F9, "FK09" },
-            { GLFW_KEY_F10, "FK10" },
-            { GLFW_KEY_F11, "FK11" },
-            { GLFW_KEY_F12, "FK12" },
-            { GLFW_KEY_F13, "FK13" },
-            { GLFW_KEY_F14, "FK14" },
-            { GLFW_KEY_F15, "FK15" },
-            { GLFW_KEY_F16, "FK16" },
-            { GLFW_KEY_F17, "FK17" },
-            { GLFW_KEY_F18, "FK18" },
-            { GLFW_KEY_F19, "FK19" },
-            { GLFW_KEY_F20, "FK20" },
-            { GLFW_KEY_F21, "FK21" },
-            { GLFW_KEY_F22, "FK22" },
-            { GLFW_KEY_F23, "FK23" },
-            { GLFW_KEY_F24, "FK24" },
-            { GLFW_KEY_F25, "FK25" },
-            { GLFW_KEY_KP_0, "KP0" },
-            { GLFW_KEY_KP_1, "KP1" },
-            { GLFW_KEY_KP_2, "KP2" },
-            { GLFW_KEY_KP_3, "KP3" },
-            { GLFW_KEY_KP_4, "KP4" },
-            { GLFW_KEY_KP_5, "KP5" },
-            { GLFW_KEY_KP_6, "KP6" },
-            { GLFW_KEY_KP_7, "KP7" },
-            { GLFW_KEY_KP_8, "KP8" },
-            { GLFW_KEY_KP_9, "KP9" },
-            { GLFW_KEY_KP_DECIMAL, "KPDL" },
-            { GLFW_KEY_KP_DIVIDE, "KPDV" },
-            { GLFW_KEY_KP_MULTIPLY, "KPMU" },
-            { GLFW_KEY_KP_SUBTRACT, "KPSU" },
-            { GLFW_KEY_KP_ADD, "KPAD" },
-            { GLFW_KEY_KP_ENTER, "KPEN" },
-            { GLFW_KEY_KP_EQUAL, "KPEQ" },
-            { GLFW_KEY_LEFT_SHIFT, "LFSH" },
-            { GLFW_KEY_LEFT_CONTROL, "LCTL" },
-            { GLFW_KEY_LEFT_ALT, "LALT" },
-            { GLFW_KEY_LEFT_SUPER, "LWIN" },
-            { GLFW_KEY_RIGHT_SHIFT, "RTSH" },
-            { GLFW_KEY_RIGHT_CONTROL, "RCTL" },
-            { GLFW_KEY_RIGHT_ALT, "RALT" },
-            { GLFW_KEY_RIGHT_ALT, "LVL3" },
-            { GLFW_KEY_RIGHT_ALT, "MDSW" },
-            { GLFW_KEY_RIGHT_SUPER, "RWIN" },
-            { GLFW_KEY_MENU, "MENU" }
-        };
-
-        // Find the X11 key code -> GLFW key code mapping
-        for (scancode = scancodeMin;  scancode <= scancodeMax;  scancode++)
-        {
-            int key = GLFW_KEY_UNKNOWN;
-
-            // Map the key name to a GLFW key code. Note: We use the US
-            // keyboard layout. Because function keys aren't mapped correctly
-            // when using traditional KeySym translations, they are mapped
-            // here instead.
-            for (int i = 0;  i < sizeof(keymap) / sizeof(keymap[0]);  i++)
-            {
-                if (strncmp(desc->names->keys[scancode].name,
-                            keymap[i].name,
-                            XkbKeyNameLength) == 0)
-                {
-                    key = keymap[i].key;
-                    break;
-                }
-            }
-
-            // Fall back to key aliases in case the key name did not match
-            for (int i = 0;  i < desc->names->num_key_aliases;  i++)
-            {
-                if (key != GLFW_KEY_UNKNOWN)
-                    break;
-
-                if (strncmp(desc->names->key_aliases[i].real,
-                            desc->names->keys[scancode].name,
-                            XkbKeyNameLength) != 0)
-                {
-                    continue;
-                }
-
-                for (int j = 0;  j < sizeof(keymap) / sizeof(keymap[0]);  j++)
-                {
-                    if (strncmp(desc->names->key_aliases[i].alias,
-                                keymap[j].name,
-                                XkbKeyNameLength) == 0)
-                    {
-                        key = keymap[j].key;
-                        break;
-                    }
-                }
-            }
-
-            _glfw.x11.keycodes[scancode] = key;
-        }
-
-        XkbFreeNames(desc, XkbKeyNamesMask, True);
-        XkbFreeKeyboard(desc, 0, True);
-    }
-    else
-        XDisplayKeycodes(_glfw.x11.display, &scancodeMin, &scancodeMax);
-
-    int width;
-    KeySym* keysyms = XGetKeyboardMapping(_glfw.x11.display,
-                                          scancodeMin,
-                                          scancodeMax - scancodeMin + 1,
-                                          &width);
-
-    for (scancode = scancodeMin;  scancode <= scancodeMax;  scancode++)
-    {
-        // Translate the un-translated key codes using traditional X11 KeySym
-        // lookups
-        if (_glfw.x11.keycodes[scancode] < 0)
-        {
-            const size_t base = (scancode - scancodeMin) * width;
-            _glfw.x11.keycodes[scancode] = translateKeySyms(&keysyms[base], width);
-        }
-
         // Store the reverse translation for faster key name lookup
-        if (_glfw.x11.keycodes[scancode] > 0)
-            _glfw.x11.scancodes[_glfw.x11.keycodes[scancode]] = scancode;
+        if (_glfw.boat.keycodes[scancode] > 0)
+            _glfw.boat.scancodes[_glfw.boat.keycodes[scancode]] = scancode;
     }
 
-    XFree(keysyms);
+    // FIXME: Are these correct?
+    strcpy(_glfw.boat.keynames[GLFW_KEY_GRAVE_ACCENT],   "`");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_1],              "1");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_2],              "2");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_3],              "3");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_4],              "4");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_5],              "5");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_6],              "6");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_7],              "7");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_8],              "8");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_9],              "9");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_0],              "0");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_MINUS],          "-");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_EQUAL],          "=");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Q],              "q");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_W],              "w");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_E],              "e");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_R],              "r");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_T],              "t");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Y],              "y");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_U],              "u");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_I],              "i");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_O],              "o");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_P],              "p");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_LEFT_BRACKET],   "[");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_RIGHT_BRACKET],  "]");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_A],              "a");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_S],              "s");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_D],              "d");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_F],              "f");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_G],              "g");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_H],              "h");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_J],              "j");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_K],              "k");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_L],              "l");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_SEMICOLON],      ";");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_APOSTROPHE],     "'");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_Z],              "z");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_X],              "x");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_C],              "c");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_V],              "v");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_B],              "b");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_N],              "n");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_M],              "m");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_COMMA],          ",");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_PERIOD],         ".");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_SLASH],          "/");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_BACKSLASH],      "\\");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_DIVIDE],      "/");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_MULTIPLY],    "*");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_ADD],         "+");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_SUBTRACT],    "-");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_0],           "0");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_1],           "1");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_2],           "2");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_3],           "3");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_4],           "4");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_5],           "5");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_6],           "6");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_7],           "7");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_8],           "8");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_9],           "9");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_EQUAL],       "=");
+    strcpy(_glfw.boat.keynames[GLFW_KEY_KP_DECIMAL],     ".");
 }
 
 // Retrieve system content scale via folklore heuristics
 //
 static void getSystemContentScale(float* xscale, float* yscale)
 {
-    // Start by assuming the default X11 DPI
-    // NOTE: Some desktop environments (KDE) may remove the Xft.dpi field when it
-    //       would be set to 96, so assume that is the case if we cannot find it
-    float xdpi = 96.f, ydpi = 96.f;
-
-    // NOTE: Basing the scale on Xft.dpi where available should provide the most
-    //       consistent user experience (matches Qt, Gtk, etc), although not
-    //       always the most accurate one
-    char* rms = XResourceManagerString(_glfw.x11.display);
-    if (rms)
-    {
-        XrmDatabase db = XrmGetStringDatabase(rms);
-        if (db)
-        {
-            XrmValue value;
-            char* type = NULL;
-
-            if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value))
-            {
-                if (type && strcmp(type, "String") == 0)
-                    xdpi = ydpi = atof(value.addr);
-            }
-
-            XrmDestroyDatabase(db);
-        }
-    }
-
-    *xscale = xdpi / 96.f;
-    *yscale = ydpi / 96.f;
+    *xscale = 1.f;
+    *yscale = 1.f;
 }
 
 
