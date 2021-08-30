@@ -3000,76 +3000,18 @@ const char* _glfwPlatformGetClipboardString(void)
 
 void _glfwPlatformGetRequiredInstanceExtensions(char** extensions)
 {
-    if (!_glfw.vk.KHR_surface)
+    if (!_glfw.vk.KHR_surface || !_glfw.vk.KHR_android_surface)
         return;
 
-    if (!_glfw.vk.KHR_xcb_surface || !_glfw.x11.x11xcb.handle)
-    {
-        if (!_glfw.vk.KHR_xlib_surface)
-            return;
-    }
-
     extensions[0] = "VK_KHR_surface";
-
-    // NOTE: VK_KHR_xcb_surface is preferred due to some early ICDs exposing but
-    //       not correctly implementing VK_KHR_xlib_surface
-    if (_glfw.vk.KHR_xcb_surface && _glfw.x11.x11xcb.handle)
-        extensions[1] = "VK_KHR_xcb_surface";
-    else
-        extensions[1] = "VK_KHR_xlib_surface";
+    extensions[1] = "VK_KHR_android_surface";
 }
 
 int _glfwPlatformGetPhysicalDevicePresentationSupport(VkInstance instance,
                                                       VkPhysicalDevice device,
                                                       uint32_t queuefamily)
 {
-    VisualID visualID = XVisualIDFromVisual(DefaultVisual(_glfw.x11.display,
-                                                          _glfw.x11.screen));
-
-    if (_glfw.vk.KHR_xcb_surface && _glfw.x11.x11xcb.handle)
-    {
-        PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR
-            vkGetPhysicalDeviceXcbPresentationSupportKHR =
-            (PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR)
-            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXcbPresentationSupportKHR");
-        if (!vkGetPhysicalDeviceXcbPresentationSupportKHR)
-        {
-            _glfwInputError(GLFW_API_UNAVAILABLE,
-                            "X11: Vulkan instance missing VK_KHR_xcb_surface extension");
-            return GLFW_FALSE;
-        }
-
-        xcb_connection_t* connection = XGetXCBConnection(_glfw.x11.display);
-        if (!connection)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Failed to retrieve XCB connection");
-            return GLFW_FALSE;
-        }
-
-        return vkGetPhysicalDeviceXcbPresentationSupportKHR(device,
-                                                            queuefamily,
-                                                            connection,
-                                                            visualID);
-    }
-    else
-    {
-        PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR
-            vkGetPhysicalDeviceXlibPresentationSupportKHR =
-            (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)
-            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
-        if (!vkGetPhysicalDeviceXlibPresentationSupportKHR)
-        {
-            _glfwInputError(GLFW_API_UNAVAILABLE,
-                            "X11: Vulkan instance missing VK_KHR_xlib_surface extension");
-            return GLFW_FALSE;
-        }
-
-        return vkGetPhysicalDeviceXlibPresentationSupportKHR(device,
-                                                             queuefamily,
-                                                             _glfw.x11.display,
-                                                             visualID);
-    }
+    return GLFW_FALSE;
 }
 
 VkResult _glfwPlatformCreateWindowSurface(VkInstance instance,
@@ -3077,74 +3019,32 @@ VkResult _glfwPlatformCreateWindowSurface(VkInstance instance,
                                           const VkAllocationCallbacks* allocator,
                                           VkSurfaceKHR* surface)
 {
-    if (_glfw.vk.KHR_xcb_surface && _glfw.x11.x11xcb.handle)
+    VkResult err;
+    VkAndroidSurfaceCreateInfoKHR sci;
+    PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
+
+    vkCreateAndroidSurfaceKHR = (PFN_vkCreateAndroidSurfaceKHR)
+        vkGetInstanceProcAddr(instance, "vkCreateAndroidSurfaceKHR");
+    if (!vkCreateAndroidSurfaceKHR)
     {
-        VkResult err;
-        VkXcbSurfaceCreateInfoKHR sci;
-        PFN_vkCreateXcbSurfaceKHR vkCreateXcbSurfaceKHR;
-
-        xcb_connection_t* connection = XGetXCBConnection(_glfw.x11.display);
-        if (!connection)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Failed to retrieve XCB connection");
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-
-        vkCreateXcbSurfaceKHR = (PFN_vkCreateXcbSurfaceKHR)
-            vkGetInstanceProcAddr(instance, "vkCreateXcbSurfaceKHR");
-        if (!vkCreateXcbSurfaceKHR)
-        {
-            _glfwInputError(GLFW_API_UNAVAILABLE,
-                            "X11: Vulkan instance missing VK_KHR_xcb_surface extension");
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-
-        memset(&sci, 0, sizeof(sci));
-        sci.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-        sci.connection = connection;
-        sci.window = window->x11.handle;
-
-        err = vkCreateXcbSurfaceKHR(instance, &sci, allocator, surface);
-        if (err)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Failed to create Vulkan XCB surface: %s",
-                            _glfwGetVulkanResultString(err));
-        }
-
-        return err;
+        _glfwInputError(GLFW_API_UNAVAILABLE,
+                        "Boat: Vulkan instance missing VK_KHR_android_surface extension");
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
-    else
+
+    memset(&sci, 0, sizeof(sci));
+    sci.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+    sci.window = window->boat.handle;
+
+    err = vkCreateAndroidSurfaceKHR(instance, &sci, allocator, surface);
+    if (err)
     {
-        VkResult err;
-        VkXlibSurfaceCreateInfoKHR sci;
-        PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
-
-        vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)
-            vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
-        if (!vkCreateXlibSurfaceKHR)
-        {
-            _glfwInputError(GLFW_API_UNAVAILABLE,
-                            "X11: Vulkan instance missing VK_KHR_xlib_surface extension");
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-
-        memset(&sci, 0, sizeof(sci));
-        sci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-        sci.dpy = _glfw.x11.display;
-        sci.window = window->x11.handle;
-
-        err = vkCreateXlibSurfaceKHR(instance, &sci, allocator, surface);
-        if (err)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Failed to create Vulkan X11 surface: %s",
-                            _glfwGetVulkanResultString(err));
-        }
-
-        return err;
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Boat: Failed to create Vulkan Android surface: %s",
+                        _glfwGetVulkanResultString(err));
     }
+
+    return err;
 }
 
 
