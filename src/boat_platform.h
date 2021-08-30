@@ -49,28 +49,24 @@ typedef VkResult (APIENTRY *PFN_vkCreateAndroidSurfaceKHR)(VkInstance, const VkA
 
 #include "posix_thread.h"
 #include "posix_time.h"
-#include "xkb_unicode.h"
-#include "glx_context.h"
 #include "egl_context.h"
 #include "osmesa_context.h"
-#if defined(__linux__)
-#include "linux_joystick.h"
-#else
 #include "null_joystick.h"
-#endif
 
 #define _glfw_dlopen(name) dlopen(name, RTLD_LAZY | RTLD_LOCAL)
 #define _glfw_dlclose(handle) dlclose(handle)
 #define _glfw_dlsym(handle, name) dlsym(handle, name)
 
-#define _GLFW_EGL_NATIVE_WINDOW  ((EGLNativeWindowType) window->x11.handle)
-#define _GLFW_EGL_NATIVE_DISPLAY ((EGLNativeDisplayType) _glfw.x11.display)
+#define _GLFW_EGL_NATIVE_WINDOW  ((EGLNativeWindowType) window->boat.handle)
+#define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
 
-#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowX11  x11
-#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryX11 x11
-#define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorX11 x11
-#define _GLFW_PLATFORM_CURSOR_STATE         _GLFWcursorX11  x11
+#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowBoat  boat
+#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryBoat boat
+#define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorBoat boat
+#define _GLFW_PLATFORM_CURSOR_STATE         _GLFWcursorBoat  boat
 
+#define _GLFW_PLATFORM_CONTEXT_STATE         struct { int dummyContext; }
+#define _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE struct { int dummyLibraryContext; }
 
 // X11-specific per-window data
 //
