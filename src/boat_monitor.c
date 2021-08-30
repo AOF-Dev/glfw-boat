@@ -34,10 +34,8 @@
 
 #include "internal.h"
 
-#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 
 static void modeChangeHandle(int width, int height, void* data)
