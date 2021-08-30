@@ -34,6 +34,8 @@
 
 #include "internal.h"
 
+#include <boat_keycodes.h>
+
 #include <string.h>
 #include <stdio.h>
 
