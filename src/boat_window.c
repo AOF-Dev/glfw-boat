@@ -34,11 +34,6 @@
 
 #include "internal.h"
 
-#include <X11/cursorfont.h>
-#include <X11/Xmd.h>
-
-#include <sys/select.h>
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +41,7 @@
 #include <errno.h>
 #include <assert.h>
 
-// Translates an X event modifier state mask
+// Translates an Boat event modifier state mask
 //
 static int translateState(int state)
 {
@@ -68,15 +63,15 @@ static int translateState(int state)
     return mods;
 }
 
-// Translates an X11 key code to a GLFW key token
+// Translates an Boat key code to a GLFW key token
 //
 static int translateKey(int scancode)
 {
-    // Use the pre-filled LUT (see createKeyTables() in x11_init.c)
+    // Use the pre-filled LUT (see createKeyTables() in boat_init.c)
     if (scancode < 0 || scancode > 255)
         return GLFW_KEY_UNKNOWN;
 
-    return _glfw.x11.keycodes[scancode];
+    return _glfw.boat.keycodes[scancode];
 }
 
 // Apply disabled cursor mode to a focused window
