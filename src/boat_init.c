@@ -1044,162 +1044,22 @@ Cursor _glfwCreateCursorX11(const GLFWimage* image, int xhot, int yhot)
 
 int _glfwPlatformInit(void)
 {
-    // HACK: If the application has left the locale as "C" then both wide
-    //       character text input and explicit UTF-8 input via XIM will break
-    //       This sets the CTYPE part of the current locale from the environment
-    //       in the hope that it is set to something more sane than "C"
-    if (strcmp(setlocale(LC_CTYPE, NULL), "C") == 0)
-        setlocale(LC_CTYPE, "");
-
-    XInitThreads();
-    XrmInitialize();
-
-    _glfw.x11.display = XOpenDisplay(NULL);
-    if (!_glfw.x11.display)
-    {
-        const char* display = getenv("DISPLAY");
-        if (display)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Failed to open display %s", display);
-        }
-        else
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: The DISPLAY environment variable is missing");
-        }
-
-        return GLFW_FALSE;
-    }
-
-    _glfw.x11.screen = DefaultScreen(_glfw.x11.display);
-    _glfw.x11.root = RootWindow(_glfw.x11.display, _glfw.x11.screen);
-    _glfw.x11.context = XUniqueContext();
-
-    getSystemContentScale(&_glfw.x11.contentScaleX, &_glfw.x11.contentScaleY);
-
-    if (!initExtensions())
-        return GLFW_FALSE;
-
-    _glfw.x11.helperWindowHandle = createHelperWindow();
-    _glfw.x11.hiddenCursorHandle = createHiddenCursor();
-
-    if (XSupportsLocale())
-    {
-        XSetLocaleModifiers("");
-
-        _glfw.x11.im = XOpenIM(_glfw.x11.display, 0, NULL, NULL);
-        if (_glfw.x11.im)
-        {
-            if (!hasUsableInputMethodStyle())
-            {
-                XCloseIM(_glfw.x11.im);
-                _glfw.x11.im = NULL;
-            }
-        }
-    }
-
-#if defined(__linux__)
-    if (!_glfwInitJoysticksLinux())
-        return GLFW_FALSE;
-#endif
+    getSystemContentScale(&_glfw.boat.contentScaleX, &_glfw.boat.contentScaleY);
+    createKeyTables();
 
     _glfwInitTimerPOSIX();
-
-    _glfwPollMonitorsX11();
+    _glfwPollMonitorsBoat();
     return GLFW_TRUE;
 }
 
 void _glfwPlatformTerminate(void)
 {
-    if (_glfw.x11.helperWindowHandle)
-    {
-        if (XGetSelectionOwner(_glfw.x11.display, _glfw.x11.CLIPBOARD) ==
-            _glfw.x11.helperWindowHandle)
-        {
-            _glfwPushSelectionToManagerX11();
-        }
-
-        XDestroyWindow(_glfw.x11.display, _glfw.x11.helperWindowHandle);
-        _glfw.x11.helperWindowHandle = None;
-    }
-
-    if (_glfw.x11.hiddenCursorHandle)
-    {
-        XFreeCursor(_glfw.x11.display, _glfw.x11.hiddenCursorHandle);
-        _glfw.x11.hiddenCursorHandle = (Cursor) 0;
-    }
-
-    free(_glfw.x11.primarySelectionString);
-    free(_glfw.x11.clipboardString);
-
-    if (_glfw.x11.im)
-    {
-        XCloseIM(_glfw.x11.im);
-        _glfw.x11.im = NULL;
-    }
-
-    if (_glfw.x11.display)
-    {
-        XCloseDisplay(_glfw.x11.display);
-        _glfw.x11.display = NULL;
-    }
-
-    if (_glfw.x11.x11xcb.handle)
-    {
-        _glfw_dlclose(_glfw.x11.x11xcb.handle);
-        _glfw.x11.x11xcb.handle = NULL;
-    }
-
-    if (_glfw.x11.xcursor.handle)
-    {
-        _glfw_dlclose(_glfw.x11.xcursor.handle);
-        _glfw.x11.xcursor.handle = NULL;
-    }
-
-    if (_glfw.x11.randr.handle)
-    {
-        _glfw_dlclose(_glfw.x11.randr.handle);
-        _glfw.x11.randr.handle = NULL;
-    }
-
-    if (_glfw.x11.xinerama.handle)
-    {
-        _glfw_dlclose(_glfw.x11.xinerama.handle);
-        _glfw.x11.xinerama.handle = NULL;
-    }
-
-    if (_glfw.x11.xrender.handle)
-    {
-        _glfw_dlclose(_glfw.x11.xrender.handle);
-        _glfw.x11.xrender.handle = NULL;
-    }
-
-    if (_glfw.x11.vidmode.handle)
-    {
-        _glfw_dlclose(_glfw.x11.vidmode.handle);
-        _glfw.x11.vidmode.handle = NULL;
-    }
-
-    if (_glfw.x11.xi.handle)
-    {
-        _glfw_dlclose(_glfw.x11.xi.handle);
-        _glfw.x11.xi.handle = NULL;
-    }
-
-    // NOTE: These need to be unloaded after XCloseDisplay, as they register
-    //       cleanup callbacks that get called by that function
     _glfwTerminateEGL();
-    _glfwTerminateGLX();
-
-#if defined(__linux__)
-    _glfwTerminateJoysticksLinux();
-#endif
 }
 
 const char* _glfwPlatformGetVersionString(void)
 {
-    return _GLFW_VERSION_NUMBER " X11 GLX EGL OSMesa"
+    return _GLFW_VERSION_NUMBER " Boat EGL OSMesa"
 #if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
         " clock_gettime"
 #else
