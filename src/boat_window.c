@@ -2008,40 +2008,14 @@ void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
 
 void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
 {
-    Window dummy;
-    int x, y;
-
-    XTranslateCoordinates(_glfw.x11.display, window->x11.handle, _glfw.x11.root,
-                          0, 0, &x, &y, &dummy);
-
     if (xpos)
-        *xpos = x;
+        *xpos = 0;
     if (ypos)
-        *ypos = y;
+        *ypos = 0;
 }
 
 void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos)
 {
-    // HACK: Explicitly setting PPosition to any value causes some WMs, notably
-    //       Compiz and Metacity, to honor the position of unmapped windows
-    if (!_glfwPlatformWindowVisible(window))
-    {
-        long supplied;
-        XSizeHints* hints = XAllocSizeHints();
-
-        if (XGetWMNormalHints(_glfw.x11.display, window->x11.handle, hints, &supplied))
-        {
-            hints->flags |= PPosition;
-            hints->x = hints->y = 0;
-
-            XSetWMNormalHints(_glfw.x11.display, window->x11.handle, hints);
-        }
-
-        XFree(hints);
-    }
-
-    XMoveWindow(_glfw.x11.display, window->x11.handle, xpos, ypos);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
