@@ -1888,6 +1888,21 @@ static void processEvent(XEvent *event)
     }
 }
 
+static void handleEvents(int timeout)
+{
+    if (boatWaitForEvent(timeout) == 0) {
+        return;
+    }
+    BoatEvent event;
+    while (boatPollEvent(&event))
+    {
+        processEvent(&event);
+        if (boatWaitForEvent(0) == 0) {
+            break;
+        }
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW platform API                      //////
@@ -2196,55 +2211,17 @@ GLFWbool _glfwPlatformRawMouseMotionSupported(void)
 
 void _glfwPlatformPollEvents(void)
 {
-    _GLFWwindow* window;
-
-#if defined(__linux__)
-    _glfwDetectJoystickConnectionLinux();
-#endif
-    XPending(_glfw.x11.display);
-
-    while (XQLength(_glfw.x11.display))
-    {
-        XEvent event;
-        XNextEvent(_glfw.x11.display, &event);
-        processEvent(&event);
-    }
-
-    window = _glfw.x11.disabledCursorWindow;
-    if (window)
-    {
-        int width, height;
-        _glfwPlatformGetWindowSize(window, &width, &height);
-
-        // NOTE: Re-center the cursor only if it has moved since the last call,
-        //       to avoid breaking glfwWaitEvents with MotionNotify
-        if (window->x11.lastCursorPosX != width / 2 ||
-            window->x11.lastCursorPosY != height / 2)
-        {
-            _glfwPlatformSetCursorPos(window, width / 2, height / 2);
-        }
-    }
-
-    XFlush(_glfw.x11.display);
+    handleEvents(0);
 }
 
 void _glfwPlatformWaitEvents(void)
 {
-    while (!XPending(_glfw.x11.display))
-        waitForEvent(NULL);
-
-    _glfwPlatformPollEvents();
+    handleEvents(-1);
 }
 
 void _glfwPlatformWaitEventsTimeout(double timeout)
 {
-    while (!XPending(_glfw.x11.display))
-    {
-        if (!waitForEvent(&timeout))
-            break;
-    }
-
-    _glfwPlatformPollEvents();
+    handleEvents((int) (timeout * 1e3));
 }
 
 void _glfwPlatformPostEmptyEvent(void)
