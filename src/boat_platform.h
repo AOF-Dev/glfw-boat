@@ -140,14 +140,4 @@ typedef struct _GLFWcursorBoat
 
 
 void _glfwPollMonitorsX11(void);
-void _glfwSetVideoModeX11(_GLFWmonitor* monitor, const GLFWvidmode* desired);
-void _glfwRestoreVideoModeX11(_GLFWmonitor* monitor);
-
-unsigned long _glfwGetWindowPropertyX11(Window window,
-                                        Atom property,
-                                        Atom type,
-                                        unsigned char** value);
-GLFWbool _glfwIsVisualTransparentX11(Visual* visual);
-
-void _glfwPushSelectionToManagerX11(void);
 
