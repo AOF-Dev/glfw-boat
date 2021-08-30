@@ -1913,55 +1913,23 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
                               const _GLFWctxconfig* ctxconfig,
                               const _GLFWfbconfig* fbconfig)
 {
-    Visual* visual = NULL;
-    int depth;
+    if (!createNativeWindow(window, wndconfig))
+        return GLFW_FALSE;
 
     if (ctxconfig->client != GLFW_NO_API)
     {
-        if (ctxconfig->source == GLFW_NATIVE_CONTEXT_API)
-        {
-            if (!_glfwInitGLX())
-                return GLFW_FALSE;
-            if (!_glfwChooseVisualGLX(wndconfig, ctxconfig, fbconfig, &visual, &depth))
-                return GLFW_FALSE;
-        }
-        else if (ctxconfig->source == GLFW_EGL_CONTEXT_API)
+        if (ctxconfig->source == GLFW_EGL_CONTEXT_API ||
+            ctxconfig->source == GLFW_NATIVE_CONTEXT_API)
         {
             if (!_glfwInitEGL())
                 return GLFW_FALSE;
-            if (!_glfwChooseVisualEGL(wndconfig, ctxconfig, fbconfig, &visual, &depth))
+            if (!_glfwCreateContextEGL(window, ctxconfig, fbconfig))
                 return GLFW_FALSE;
         }
         else if (ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
         {
             if (!_glfwInitOSMesa())
                 return GLFW_FALSE;
-        }
-    }
-
-    if (!visual)
-    {
-        visual = DefaultVisual(_glfw.x11.display, _glfw.x11.screen);
-        depth = DefaultDepth(_glfw.x11.display, _glfw.x11.screen);
-    }
-
-    if (!createNativeWindow(window, wndconfig, visual, depth))
-        return GLFW_FALSE;
-
-    if (ctxconfig->client != GLFW_NO_API)
-    {
-        if (ctxconfig->source == GLFW_NATIVE_CONTEXT_API)
-        {
-            if (!_glfwCreateContextGLX(window, ctxconfig, fbconfig))
-                return GLFW_FALSE;
-        }
-        else if (ctxconfig->source == GLFW_EGL_CONTEXT_API)
-        {
-            if (!_glfwCreateContextEGL(window, ctxconfig, fbconfig))
-                return GLFW_FALSE;
-        }
-        else if (ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
-        {
             if (!_glfwCreateContextOSMesa(window, ctxconfig, fbconfig))
                 return GLFW_FALSE;
         }
@@ -1970,46 +1938,28 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
     if (window->monitor)
     {
         _glfwPlatformShowWindow(window);
-        updateWindowMode(window);
         acquireMonitor(window);
     }
 
-    XFlush(_glfw.x11.display);
     return GLFW_TRUE;
 }
 
 void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 {
-    if (_glfw.x11.disabledCursorWindow == window)
-        _glfw.x11.disabledCursorWindow = NULL;
+    if (_glfw.boat.disabledCursorWindow == window)
+        _glfw.boat.disabledCursorWindow = NULL;
 
     if (window->monitor)
         releaseMonitor(window);
 
-    if (window->x11.ic)
-    {
-        XDestroyIC(window->x11.ic);
-        window->x11.ic = NULL;
-    }
-
     if (window->context.destroy)
         window->context.destroy(window);
 
-    if (window->x11.handle)
+    if (window->boat.handle)
     {
-        XDeleteContext(_glfw.x11.display, window->x11.handle, _glfw.x11.context);
-        XUnmapWindow(_glfw.x11.display, window->x11.handle);
-        XDestroyWindow(_glfw.x11.display, window->x11.handle);
-        window->x11.handle = (Window) 0;
+        ANativeWindow_release(window->boat.handle);
+        window->boat.handle = NULL;
     }
-
-    if (window->x11.colormap)
-    {
-        XFreeColormap(_glfw.x11.display, window->x11.colormap);
-        window->x11.colormap = (Colormap) 0;
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
