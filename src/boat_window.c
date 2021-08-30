@@ -2075,157 +2075,30 @@ void _glfwPlatformGetWindowContentScale(_GLFWwindow* window,
 
 void _glfwPlatformIconifyWindow(_GLFWwindow* window)
 {
-    if (window->x11.overrideRedirect)
-    {
-        // Override-redirect windows cannot be iconified or restored, as those
-        // tasks are performed by the window manager
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Iconification of full screen windows requires a WM that supports EWMH full screen");
-        return;
-    }
-
-    XIconifyWindow(_glfw.x11.display, window->x11.handle, _glfw.x11.screen);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformRestoreWindow(_GLFWwindow* window)
 {
-    if (window->x11.overrideRedirect)
-    {
-        // Override-redirect windows cannot be iconified or restored, as those
-        // tasks are performed by the window manager
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Iconification of full screen windows requires a WM that supports EWMH full screen");
-        return;
-    }
-
-    if (_glfwPlatformWindowIconified(window))
-    {
-        XMapWindow(_glfw.x11.display, window->x11.handle);
-        waitForVisibilityNotify(window);
-    }
-    else if (_glfwPlatformWindowVisible(window))
-    {
-        if (_glfw.x11.NET_WM_STATE &&
-            _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT &&
-            _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ)
-        {
-            sendEventToWM(window,
-                          _glfw.x11.NET_WM_STATE,
-                          _NET_WM_STATE_REMOVE,
-                          _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT,
-                          _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ,
-                          1, 0);
-        }
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformMaximizeWindow(_GLFWwindow* window)
 {
-    if (!_glfw.x11.NET_WM_STATE ||
-        !_glfw.x11.NET_WM_STATE_MAXIMIZED_VERT ||
-        !_glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ)
-    {
-        return;
-    }
-
-    if (_glfwPlatformWindowVisible(window))
-    {
-        sendEventToWM(window,
-                    _glfw.x11.NET_WM_STATE,
-                    _NET_WM_STATE_ADD,
-                    _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT,
-                    _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ,
-                    1, 0);
-    }
-    else
-    {
-        Atom* states = NULL;
-        unsigned long count =
-            _glfwGetWindowPropertyX11(window->x11.handle,
-                                      _glfw.x11.NET_WM_STATE,
-                                      XA_ATOM,
-                                      (unsigned char**) &states);
-
-        // NOTE: We don't check for failure as this property may not exist yet
-        //       and that's fine (and we'll create it implicitly with append)
-
-        Atom missing[2] =
-        {
-            _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT,
-            _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ
-        };
-        unsigned long missingCount = 2;
-
-        for (unsigned long i = 0;  i < count;  i++)
-        {
-            for (unsigned long j = 0;  j < missingCount;  j++)
-            {
-                if (states[i] == missing[j])
-                {
-                    missing[j] = missing[missingCount - 1];
-                    missingCount--;
-                }
-            }
-        }
-
-        if (states)
-            XFree(states);
-
-        if (!missingCount)
-            return;
-
-        XChangeProperty(_glfw.x11.display, window->x11.handle,
-                        _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                        PropModeAppend,
-                        (unsigned char*) missing,
-                        missingCount);
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformShowWindow(_GLFWwindow* window)
 {
-    if (_glfwPlatformWindowVisible(window))
-        return;
-
-    XMapWindow(_glfw.x11.display, window->x11.handle);
-    waitForVisibilityNotify(window);
 }
 
 void _glfwPlatformHideWindow(_GLFWwindow* window)
 {
-    XUnmapWindow(_glfw.x11.display, window->x11.handle);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformRequestWindowAttention(_GLFWwindow* window)
 {
-    if (!_glfw.x11.NET_WM_STATE || !_glfw.x11.NET_WM_STATE_DEMANDS_ATTENTION)
-        return;
-
-    sendEventToWM(window,
-                  _glfw.x11.NET_WM_STATE,
-                  _NET_WM_STATE_ADD,
-                  _glfw.x11.NET_WM_STATE_DEMANDS_ATTENTION,
-                  0, 1, 0);
 }
 
 void _glfwPlatformFocusWindow(_GLFWwindow* window)
 {
-    if (_glfw.x11.NET_ACTIVE_WINDOW)
-        sendEventToWM(window, _glfw.x11.NET_ACTIVE_WINDOW, 1, 0, 0, 0, 0);
-    else if (_glfwPlatformWindowVisible(window))
-    {
-        XRaiseWindow(_glfw.x11.display, window->x11.handle);
-        XSetInputFocus(_glfw.x11.display, window->x11.handle,
-                       RevertToParent, CurrentTime);
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
