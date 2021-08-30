@@ -43,6 +43,10 @@ typedef Window EGLNativeWindowType;
  #define EGLAPIENTRY
 typedef struct wl_display* EGLNativeDisplayType;
 typedef struct wl_egl_window* EGLNativeWindowType;
+#elif defined(_GLFW_BOAT)
+ #define EGLAPIENTRY
+typedef void* EGLNativeDisplayType;
+typedef struct ANativeWindow* EGLNativeWindowType;
 #else
  #error "No supported EGL platform selected"
 #endif
