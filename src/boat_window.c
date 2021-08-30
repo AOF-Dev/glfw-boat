@@ -2020,13 +2020,10 @@ void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos)
 
 void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
 {
-    XWindowAttributes attribs;
-    XGetWindowAttributes(_glfw.x11.display, window->x11.handle, &attribs);
-
     if (width)
-        *width = attribs.width;
+        *width = ANativeWindow_getWidth(window->boat.handle);
     if (height)
-        *height = attribs.height;
+        *height = ANativeWindow_getHeight(window->boat.handle);
 }
 
 void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height)
@@ -2036,33 +2033,16 @@ void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height)
         if (window->monitor->window == window)
             acquireMonitor(window);
     }
-    else
-    {
-        if (!window->resizable)
-            updateNormalHints(window, width, height);
-
-        XResizeWindow(_glfw.x11.display, window->x11.handle, width, height);
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformSetWindowSizeLimits(_GLFWwindow* window,
                                       int minwidth, int minheight,
                                       int maxwidth, int maxheight)
 {
-    int width, height;
-    _glfwPlatformGetWindowSize(window, &width, &height);
-    updateNormalHints(window, width, height);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformSetWindowAspectRatio(_GLFWwindow* window, int numer, int denom)
 {
-    int width, height;
-    _glfwPlatformGetWindowSize(window, &width, &height);
-    updateNormalHints(window, width, height);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformGetFramebufferSize(_GLFWwindow* window, int* width, int* height)
