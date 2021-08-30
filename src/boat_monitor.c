@@ -526,94 +526,14 @@ void _glfwPlatformGetVideoMode(_GLFWmonitor* monitor, GLFWvidmode* mode)
 
 GLFWbool _glfwPlatformGetGammaRamp(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
 {
-    if (_glfw.x11.randr.available && !_glfw.x11.randr.gammaBroken)
-    {
-        const size_t size = XRRGetCrtcGammaSize(_glfw.x11.display,
-                                                monitor->x11.crtc);
-        XRRCrtcGamma* gamma = XRRGetCrtcGamma(_glfw.x11.display,
-                                              monitor->x11.crtc);
-
-        _glfwAllocGammaArrays(ramp, size);
-
-        memcpy(ramp->red,   gamma->red,   size * sizeof(unsigned short));
-        memcpy(ramp->green, gamma->green, size * sizeof(unsigned short));
-        memcpy(ramp->blue,  gamma->blue,  size * sizeof(unsigned short));
-
-        XRRFreeGamma(gamma);
-        return GLFW_TRUE;
-    }
-    else if (_glfw.x11.vidmode.available)
-    {
-        int size;
-        XF86VidModeGetGammaRampSize(_glfw.x11.display, _glfw.x11.screen, &size);
-
-        _glfwAllocGammaArrays(ramp, size);
-
-        XF86VidModeGetGammaRamp(_glfw.x11.display,
-                                _glfw.x11.screen,
-                                ramp->size, ramp->red, ramp->green, ramp->blue);
-        return GLFW_TRUE;
-    }
-    else
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Gamma ramp access not supported by server");
-        return GLFW_FALSE;
-    }
+    _glfwInputError(GLFW_PLATFORM_ERROR,
+                    "Boat: Gamma ramp access not supported");
+    return GLFW_FALSE;
 }
 
 void _glfwPlatformSetGammaRamp(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
 {
-    if (_glfw.x11.randr.available && !_glfw.x11.randr.gammaBroken)
-    {
-        if (XRRGetCrtcGammaSize(_glfw.x11.display, monitor->x11.crtc) != ramp->size)
-        {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
-                            "X11: Gamma ramp size must match current ramp size");
-            return;
-        }
-
-        XRRCrtcGamma* gamma = XRRAllocGamma(ramp->size);
-
-        memcpy(gamma->red,   ramp->red,   ramp->size * sizeof(unsigned short));
-        memcpy(gamma->green, ramp->green, ramp->size * sizeof(unsigned short));
-        memcpy(gamma->blue,  ramp->blue,  ramp->size * sizeof(unsigned short));
-
-        XRRSetCrtcGamma(_glfw.x11.display, monitor->x11.crtc, gamma);
-        XRRFreeGamma(gamma);
-    }
-    else if (_glfw.x11.vidmode.available)
-    {
-        XF86VidModeSetGammaRamp(_glfw.x11.display,
-                                _glfw.x11.screen,
-                                ramp->size,
-                                (unsigned short*) ramp->red,
-                                (unsigned short*) ramp->green,
-                                (unsigned short*) ramp->blue);
-    }
-    else
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Gamma ramp access not supported by server");
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//////                        GLFW native API                       //////
-//////////////////////////////////////////////////////////////////////////
-
-GLFWAPI RRCrtc glfwGetX11Adapter(GLFWmonitor* handle)
-{
-    _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(None);
-    return monitor->x11.crtc;
-}
-
-GLFWAPI RROutput glfwGetX11Monitor(GLFWmonitor* handle)
-{
-    _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(None);
-    return monitor->x11.output;
+    _glfwInputError(GLFW_PLATFORM_ERROR,
+                    "Boat: Gamma ramp access not supported");
 }
 
