@@ -120,19 +120,14 @@ typedef struct _GLFWlibraryBoat
 
 } _GLFWlibraryBoat;
 
-// X11-specific per-monitor data
+// Boat-specific per-monitor data
 //
-typedef struct _GLFWmonitorX11
+typedef struct _GLFWmonitorBoat
 {
-    RROutput        output;
-    RRCrtc          crtc;
-    RRMode          oldMode;
+    // Current monitor mode index
+    int             currentMode;
 
-    // Index of corresponding Xinerama screen,
-    // for EWMH full screen window placement
-    int             index;
-
-} _GLFWmonitorX11;
+} _GLFWmonitorBoat;
 
 // Boat-specific per-cursor data
 //
