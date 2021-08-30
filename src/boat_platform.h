@@ -35,31 +35,17 @@
 
 #include <boat.h>
 
-typedef VkFlags VkXlibSurfaceCreateFlagsKHR;
-typedef VkFlags VkXcbSurfaceCreateFlagsKHR;
+typedef VkFlags VkAndroidSurfaceCreateFlagsKHR;
 
-typedef struct VkXlibSurfaceCreateInfoKHR
+typedef struct VkAndroidSurfaceCreateInfoKHR
 {
-    VkStructureType             sType;
-    const void*                 pNext;
-    VkXlibSurfaceCreateFlagsKHR flags;
-    Display*                    dpy;
-    Window                      window;
-} VkXlibSurfaceCreateInfoKHR;
+    VkStructureType                   sType;
+    const void*                       pNext;
+    VkAndroidSurfaceCreateFlagsKHR    flags;
+    struct ANativeWindow*             window;
+} VkAndroidSurfaceCreateInfoKHR;
 
-typedef struct VkXcbSurfaceCreateInfoKHR
-{
-    VkStructureType             sType;
-    const void*                 pNext;
-    VkXcbSurfaceCreateFlagsKHR  flags;
-    xcb_connection_t*           connection;
-    xcb_window_t                window;
-} VkXcbSurfaceCreateInfoKHR;
-
-typedef VkResult (APIENTRY *PFN_vkCreateXlibSurfaceKHR)(VkInstance,const VkXlibSurfaceCreateInfoKHR*,const VkAllocationCallbacks*,VkSurfaceKHR*);
-typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)(VkPhysicalDevice,uint32_t,Display*,VisualID);
-typedef VkResult (APIENTRY *PFN_vkCreateXcbSurfaceKHR)(VkInstance,const VkXcbSurfaceCreateInfoKHR*,const VkAllocationCallbacks*,VkSurfaceKHR*);
-typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR)(VkPhysicalDevice,uint32_t,xcb_connection_t*,xcb_visualid_t);
+typedef VkResult (APIENTRY *PFN_vkCreateAndroidSurfaceKHR)(VkInstance, const VkAndroidSurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*);
 
 #include "posix_thread.h"
 #include "posix_time.h"
