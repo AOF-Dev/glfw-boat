@@ -2166,101 +2166,14 @@ int _glfwPlatformFramebufferTransparent(_GLFWwindow* window)
 
 void _glfwPlatformSetWindowResizable(_GLFWwindow* window, GLFWbool enabled)
 {
-    int width, height;
-    _glfwPlatformGetWindowSize(window, &width, &height);
-    updateNormalHints(window, width, height);
 }
 
 void _glfwPlatformSetWindowDecorated(_GLFWwindow* window, GLFWbool enabled)
 {
-    struct
-    {
-        unsigned long flags;
-        unsigned long functions;
-        unsigned long decorations;
-        long input_mode;
-        unsigned long status;
-    } hints = {0};
-
-    hints.flags = MWM_HINTS_DECORATIONS;
-    hints.decorations = enabled ? MWM_DECOR_ALL : 0;
-
-    XChangeProperty(_glfw.x11.display, window->x11.handle,
-                    _glfw.x11.MOTIF_WM_HINTS,
-                    _glfw.x11.MOTIF_WM_HINTS, 32,
-                    PropModeReplace,
-                    (unsigned char*) &hints,
-                    sizeof(hints) / sizeof(long));
 }
 
 void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled)
 {
-    if (!_glfw.x11.NET_WM_STATE || !_glfw.x11.NET_WM_STATE_ABOVE)
-        return;
-
-    if (_glfwPlatformWindowVisible(window))
-    {
-        const long action = enabled ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
-        sendEventToWM(window,
-                      _glfw.x11.NET_WM_STATE,
-                      action,
-                      _glfw.x11.NET_WM_STATE_ABOVE,
-                      0, 1, 0);
-    }
-    else
-    {
-        Atom* states = NULL;
-        unsigned long i, count;
-
-        count = _glfwGetWindowPropertyX11(window->x11.handle,
-                                          _glfw.x11.NET_WM_STATE,
-                                          XA_ATOM,
-                                          (unsigned char**) &states);
-
-        // NOTE: We don't check for failure as this property may not exist yet
-        //       and that's fine (and we'll create it implicitly with append)
-
-        if (enabled)
-        {
-            for (i = 0;  i < count;  i++)
-            {
-                if (states[i] == _glfw.x11.NET_WM_STATE_ABOVE)
-                    break;
-            }
-
-            if (i < count)
-                return;
-
-            XChangeProperty(_glfw.x11.display, window->x11.handle,
-                            _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                            PropModeAppend,
-                            (unsigned char*) &_glfw.x11.NET_WM_STATE_ABOVE,
-                            1);
-        }
-        else if (states)
-        {
-            for (i = 0;  i < count;  i++)
-            {
-                if (states[i] == _glfw.x11.NET_WM_STATE_ABOVE)
-                    break;
-            }
-
-            if (i == count)
-                return;
-
-            states[i] = states[count - 1];
-            count--;
-
-            XChangeProperty(_glfw.x11.display, window->x11.handle,
-                            _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                            PropModeReplace, (unsigned char*) states, count);
-        }
-
-        if (states)
-            XFree(states);
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 float _glfwPlatformGetWindowOpacity(_GLFWwindow* window)
