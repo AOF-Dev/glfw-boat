@@ -1167,247 +1167,34 @@ static void releaseMonitor(_GLFWwindow* window)
     }
 }
 
-// Process the specified X event
+// Process the specified Boat event
 //
-static void processEvent(XEvent *event)
+static void processEvent(BoatEvent *event)
 {
-    int keycode = 0;
-    Bool filtered = False;
-
-    // HACK: Save scancode as some IMs clear the field in XFilterEvent
-    if (event->type == KeyPress || event->type == KeyRelease)
-        keycode = event->xkey.keycode;
-
-    if (_glfw.x11.im)
-        filtered = XFilterEvent(event, None);
-
-    if (_glfw.x11.randr.available)
-    {
-        if (event->type == _glfw.x11.randr.eventBase + RRNotify)
-        {
-            XRRUpdateConfiguration(event);
-            _glfwPollMonitorsX11();
-            return;
-        }
-    }
-
-    if (_glfw.x11.xkb.available)
-    {
-        if (event->type == _glfw.x11.xkb.eventBase + XkbEventCode)
-        {
-            if (((XkbEvent*) event)->any.xkb_type == XkbStateNotify &&
-                (((XkbEvent*) event)->state.changed & XkbGroupStateMask))
-            {
-                _glfw.x11.xkb.group = ((XkbEvent*) event)->state.group;
-            }
-
-            return;
-        }
-    }
-
-    if (event->type == GenericEvent)
-    {
-        if (_glfw.x11.xi.available)
-        {
-            _GLFWwindow* window = _glfw.x11.disabledCursorWindow;
-
-            if (window &&
-                window->rawMouseMotion &&
-                event->xcookie.extension == _glfw.x11.xi.majorOpcode &&
-                XGetEventData(_glfw.x11.display, &event->xcookie) &&
-                event->xcookie.evtype == XI_RawMotion)
-            {
-                XIRawEvent* re = event->xcookie.data;
-                if (re->valuators.mask_len)
-                {
-                    const double* values = re->raw_values;
-                    double xpos = window->virtualCursorPosX;
-                    double ypos = window->virtualCursorPosY;
-
-                    if (XIMaskIsSet(re->valuators.mask, 0))
-                    {
-                        xpos += *values;
-                        values++;
-                    }
-
-                    if (XIMaskIsSet(re->valuators.mask, 1))
-                        ypos += *values;
-
-                    _glfwInputCursorPos(window, xpos, ypos);
-                }
-            }
-
-            XFreeEventData(_glfw.x11.display, &event->xcookie);
-        }
-
-        return;
-    }
-
-    if (event->type == SelectionClear)
-    {
-        handleSelectionClear(event);
-        return;
-    }
-    else if (event->type == SelectionRequest)
-    {
-        handleSelectionRequest(event);
-        return;
-    }
-
-    _GLFWwindow* window = NULL;
-    if (XFindContext(_glfw.x11.display,
-                     event->xany.window,
-                     _glfw.x11.context,
-                     (XPointer*) &window) != 0)
-    {
-        // This is an event for a window that has already been destroyed
-        return;
-    }
+    _GLFWwindow* window = _glfw.boat.eventCurrent;
 
     switch (event->type)
     {
-        case ReparentNotify:
-        {
-            window->x11.parent = event->xreparent.parent;
-            return;
-        }
-
         case KeyPress:
         {
+            const int keycode = event->keycode;
+            const int keychar = event->keychar;
             const int key = translateKey(keycode);
-            const int mods = translateState(event->xkey.state);
+            const int mods = translateState(event->state);
             const int plain = !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_ALT));
 
-            if (window->x11.ic)
-            {
-                // HACK: Do not report the key press events duplicated by XIM
-                //       Duplicate key releases are filtered out implicitly by
-                //       the GLFW key repeat logic in _glfwInputKey
-                //       A timestamp per key is used to handle simultaneous keys
-                // NOTE: Always allow the first event for each key through
-                //       (the server never sends a timestamp of zero)
-                // NOTE: Timestamp difference is compared to handle wrap-around
-                Time diff = event->xkey.time - window->x11.keyPressTimes[keycode];
-                if (diff == event->xkey.time || (diff > 0 && diff < (1 << 31)))
-                {
-                    if (keycode)
-                        _glfwInputKey(window, key, keycode, GLFW_PRESS, mods);
-
-                    window->x11.keyPressTimes[keycode] = event->xkey.time;
-                }
-
-                if (!filtered)
-                {
-                    int count;
-                    Status status;
-#if defined(X_HAVE_UTF8_STRING)
-                    char buffer[100];
-                    char* chars = buffer;
-
-                    count = Xutf8LookupString(window->x11.ic,
-                                              &event->xkey,
-                                              buffer, sizeof(buffer) - 1,
-                                              NULL, &status);
-
-                    if (status == XBufferOverflow)
-                    {
-                        chars = calloc(count + 1, 1);
-                        count = Xutf8LookupString(window->x11.ic,
-                                                  &event->xkey,
-                                                  chars, count,
-                                                  NULL, &status);
-                    }
-
-                    if (status == XLookupChars || status == XLookupBoth)
-                    {
-                        const char* c = chars;
-                        chars[count] = '\0';
-                        while (c - chars < count)
-                            _glfwInputChar(window, decodeUTF8(&c), mods, plain);
-                    }
-#else /*X_HAVE_UTF8_STRING*/
-                    wchar_t buffer[16];
-                    wchar_t* chars = buffer;
-
-                    count = XwcLookupString(window->x11.ic,
-                                            &event->xkey,
-                                            buffer,
-                                            sizeof(buffer) / sizeof(wchar_t),
-                                            NULL,
-                                            &status);
-
-                    if (status == XBufferOverflow)
-                    {
-                        chars = calloc(count, sizeof(wchar_t));
-                        count = XwcLookupString(window->x11.ic,
-                                                &event->xkey,
-                                                chars, count,
-                                                NULL, &status);
-                    }
-
-                    if (status == XLookupChars || status == XLookupBoth)
-                    {
-                        int i;
-                        for (i = 0;  i < count;  i++)
-                            _glfwInputChar(window, chars[i], mods, plain);
-                    }
-#endif /*X_HAVE_UTF8_STRING*/
-
-                    if (chars != buffer)
-                        free(chars);
-                }
+            _glfwInputKey(window, key, keycode, GLFW_PRESS, mods);
+            if (keychar) {
+                _glfwInputChar(window, keychar, mods, plain);
             }
-            else
-            {
-                KeySym keysym;
-                XLookupString(&event->xkey, NULL, 0, &keysym, NULL);
-
-                _glfwInputKey(window, key, keycode, GLFW_PRESS, mods);
-
-                const long character = _glfwKeySym2Unicode(keysym);
-                if (character != -1)
-                    _glfwInputChar(window, character, mods, plain);
-            }
-
             return;
         }
 
         case KeyRelease:
         {
+            const int keycode = event->keycode;
             const int key = translateKey(keycode);
-            const int mods = translateState(event->xkey.state);
-
-            if (!_glfw.x11.xkb.detectable)
-            {
-                // HACK: Key repeat events will arrive as KeyRelease/KeyPress
-                //       pairs with similar or identical time stamps
-                //       The key repeat logic in _glfwInputKey expects only key
-                //       presses to repeat, so detect and discard release events
-                if (XEventsQueued(_glfw.x11.display, QueuedAfterReading))
-                {
-                    XEvent next;
-                    XPeekEvent(_glfw.x11.display, &next);
-
-                    if (next.type == KeyPress &&
-                        next.xkey.window == event->xkey.window &&
-                        next.xkey.keycode == keycode)
-                    {
-                        // HACK: The time of repeat events sometimes doesn't
-                        //       match that of the press event, so add an
-                        //       epsilon
-                        //       Toshiyuki Takahashi can press a button
-                        //       16 times per second so it's fairly safe to
-                        //       assume that no human is pressing the key 50
-                        //       times per second (value is ms)
-                        if ((next.xkey.time - event->xkey.time) < 20)
-                        {
-                            // This is very likely a server-generated key repeat
-                            // event, so ignore it
-                            return;
-                        }
-                    }
-                }
-            }
+            const int mods = translateState(event->state);
 
             _glfwInputKey(window, key, keycode, GLFW_RELEASE, mods);
             return;
@@ -1415,23 +1202,23 @@ static void processEvent(XEvent *event)
 
         case ButtonPress:
         {
-            const int mods = translateState(event->xbutton.state);
+            const int mods = translateState(event->state);
 
-            if (event->xbutton.button == Button1)
+            if (event->button == Button1)
                 _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, mods);
-            else if (event->xbutton.button == Button2)
+            else if (event->button == Button2)
                 _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_PRESS, mods);
-            else if (event->xbutton.button == Button3)
+            else if (event->button == Button3)
                 _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS, mods);
 
-            // Modern X provides scroll events as mouse button presses
-            else if (event->xbutton.button == Button4)
+            // Like X11, Boat provides scroll events as mouse button presses
+            else if (event->button == Button4)
                 _glfwInputScroll(window, 0.0, 1.0);
-            else if (event->xbutton.button == Button5)
+            else if (event->button == Button5)
                 _glfwInputScroll(window, 0.0, -1.0);
-            else if (event->xbutton.button == Button6)
+            else if (event->button == Button6)
                 _glfwInputScroll(window, 1.0, 0.0);
-            else if (event->xbutton.button == Button7)
+            else if (event->button == Button7)
                 _glfwInputScroll(window, -1.0, 0.0);
 
             else
@@ -1439,7 +1226,7 @@ static void processEvent(XEvent *event)
                 // Additional buttons after 7 are treated as regular buttons
                 // We subtract 4 to fill the gap left by scroll input above
                 _glfwInputMouseClick(window,
-                                     event->xbutton.button - Button1 - 4,
+                                     event->button - Button1 - 4,
                                      GLFW_PRESS,
                                      mods);
             }
@@ -1449,35 +1236,35 @@ static void processEvent(XEvent *event)
 
         case ButtonRelease:
         {
-            const int mods = translateState(event->xbutton.state);
+            const int mods = translateState(event->state);
 
-            if (event->xbutton.button == Button1)
+            if (event->button == Button1)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_LEFT,
                                      GLFW_RELEASE,
                                      mods);
             }
-            else if (event->xbutton.button == Button2)
+            else if (event->button == Button2)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_MIDDLE,
                                      GLFW_RELEASE,
                                      mods);
             }
-            else if (event->xbutton.button == Button3)
+            else if (event->button == Button3)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_RIGHT,
                                      GLFW_RELEASE,
                                      mods);
             }
-            else if (event->xbutton.button > Button7)
+            else if (event->button > Button7)
             {
                 // Additional buttons after 7 are treated as regular buttons
                 // We subtract 4 to fill the gap left by scroll input above
                 _glfwInputMouseClick(window,
-                                     event->xbutton.button - Button1 - 4,
+                                     event->button - Button1 - 4,
                                      GLFW_RELEASE,
                                      mods);
             }
@@ -1485,50 +1272,25 @@ static void processEvent(XEvent *event)
             return;
         }
 
-        case EnterNotify:
-        {
-            // XEnterWindowEvent is XCrossingEvent
-            const int x = event->xcrossing.x;
-            const int y = event->xcrossing.y;
-
-            // HACK: This is a workaround for WMs (KWM, Fluxbox) that otherwise
-            //       ignore the defined cursor for hidden cursor mode
-            if (window->cursorMode == GLFW_CURSOR_HIDDEN)
-                updateCursorImage(window);
-
-            _glfwInputCursorEnter(window, GLFW_TRUE);
-            _glfwInputCursorPos(window, x, y);
-
-            window->x11.lastCursorPosX = x;
-            window->x11.lastCursorPosY = y;
-            return;
-        }
-
-        case LeaveNotify:
-        {
-            _glfwInputCursorEnter(window, GLFW_FALSE);
-            return;
-        }
-
         case MotionNotify:
         {
-            const int x = event->xmotion.x;
-            const int y = event->xmotion.y;
+            const int x = event->x;
+            const int y = event->y;
 
-            if (x != window->x11.warpCursorPosX ||
-                y != window->x11.warpCursorPosY)
+            if (x != window->boat.warpCursorPosX ||
+                y != window->boat.warpCursorPosY)
             {
                 // The cursor was moved by something other than GLFW
 
                 if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 {
-                    if (_glfw.x11.disabledCursorWindow != window)
+                    if (_glfw.boat.disabledCursorWindow != window)
                         return;
                     if (window->rawMouseMotion)
                         return;
 
-                    const int dx = x - window->x11.lastCursorPosX;
-                    const int dy = y - window->x11.lastCursorPosY;
+                    const int dx = x - window->boat.lastCursorPosX;
+                    const int dy = y - window->boat.lastCursorPosY;
 
                     _glfwInputCursorPos(window,
                                         window->virtualCursorPosX + dx,
@@ -1538,353 +1300,42 @@ static void processEvent(XEvent *event)
                     _glfwInputCursorPos(window, x, y);
             }
 
-            window->x11.lastCursorPosX = x;
-            window->x11.lastCursorPosY = y;
+            window->boat.lastCursorPosX = x;
+            window->boat.lastCursorPosY = y;
             return;
         }
 
         case ConfigureNotify:
         {
-            if (event->xconfigure.width != window->x11.width ||
-                event->xconfigure.height != window->x11.height)
+            const int width = event->width;
+            const int height = event->height;
+            if (width != window->boat.width ||
+                height != window->boat.height)
             {
                 _glfwInputFramebufferSize(window,
-                                          event->xconfigure.width,
-                                          event->xconfigure.height);
+                                          width,
+                                          height);
 
                 _glfwInputWindowSize(window,
-                                     event->xconfigure.width,
-                                     event->xconfigure.height);
+                                     width,
+                                     height);
 
-                window->x11.width = event->xconfigure.width;
-                window->x11.height = event->xconfigure.height;
-            }
-
-            int xpos = event->xconfigure.x;
-            int ypos = event->xconfigure.y;
-
-            // NOTE: ConfigureNotify events from the server are in local
-            //       coordinates, so if we are reparented we need to translate
-            //       the position into root (screen) coordinates
-            if (!event->xany.send_event && window->x11.parent != _glfw.x11.root)
-            {
-                _glfwGrabErrorHandlerX11();
-
-                Window dummy;
-                XTranslateCoordinates(_glfw.x11.display,
-                                      window->x11.parent,
-                                      _glfw.x11.root,
-                                      xpos, ypos,
-                                      &xpos, &ypos,
-                                      &dummy);
-
-                _glfwReleaseErrorHandlerX11();
-                if (_glfw.x11.errorCode == BadWindow)
-                    return;
-            }
-
-            if (xpos != window->x11.xpos || ypos != window->x11.ypos)
-            {
-                _glfwInputWindowPos(window, xpos, ypos);
-                window->x11.xpos = xpos;
-                window->x11.ypos = ypos;
+                window->boat.width = width;
+                window->boat.height = height;
             }
 
             return;
         }
 
-        case ClientMessage:
+        case BoatMessage:
         {
-            // Custom client message, probably from the window manager
-
-            if (filtered)
-                return;
-
-            if (event->xclient.message_type == None)
-                return;
-
-            if (event->xclient.message_type == _glfw.x11.WM_PROTOCOLS)
+            if (event->message == CloseRequest)
             {
-                const Atom protocol = event->xclient.data.l[0];
-                if (protocol == None)
-                    return;
-
-                if (protocol == _glfw.x11.WM_DELETE_WINDOW)
-                {
-                    // The window manager was asked to close the window, for
-                    // example by the user pressing a 'close' window decoration
-                    // button
-                    _glfwInputWindowCloseRequest(window);
-                }
-                else if (protocol == _glfw.x11.NET_WM_PING)
-                {
-                    // The window manager is pinging the application to ensure
-                    // it's still responding to events
-
-                    XEvent reply = *event;
-                    reply.xclient.window = _glfw.x11.root;
-
-                    XSendEvent(_glfw.x11.display, _glfw.x11.root,
-                               False,
-                               SubstructureNotifyMask | SubstructureRedirectMask,
-                               &reply);
-                }
+                // The Boat was asked to close the window, for
+                // example by the user pressing 'back' key
+                _glfwInputWindowCloseRequest(window);
             }
-            else if (event->xclient.message_type == _glfw.x11.XdndEnter)
-            {
-                // A drag operation has entered the window
-                unsigned long i, count;
-                Atom* formats = NULL;
-                const GLFWbool list = event->xclient.data.l[1] & 1;
-
-                _glfw.x11.xdnd.source  = event->xclient.data.l[0];
-                _glfw.x11.xdnd.version = event->xclient.data.l[1] >> 24;
-                _glfw.x11.xdnd.format  = None;
-
-                if (_glfw.x11.xdnd.version > _GLFW_XDND_VERSION)
-                    return;
-
-                if (list)
-                {
-                    count = _glfwGetWindowPropertyX11(_glfw.x11.xdnd.source,
-                                                      _glfw.x11.XdndTypeList,
-                                                      XA_ATOM,
-                                                      (unsigned char**) &formats);
-                }
-                else
-                {
-                    count = 3;
-                    formats = (Atom*) event->xclient.data.l + 2;
-                }
-
-                for (i = 0;  i < count;  i++)
-                {
-                    if (formats[i] == _glfw.x11.text_uri_list)
-                    {
-                        _glfw.x11.xdnd.format = _glfw.x11.text_uri_list;
-                        break;
-                    }
-                }
-
-                if (list && formats)
-                    XFree(formats);
-            }
-            else if (event->xclient.message_type == _glfw.x11.XdndDrop)
-            {
-                // The drag operation has finished by dropping on the window
-                Time time = CurrentTime;
-
-                if (_glfw.x11.xdnd.version > _GLFW_XDND_VERSION)
-                    return;
-
-                if (_glfw.x11.xdnd.format)
-                {
-                    if (_glfw.x11.xdnd.version >= 1)
-                        time = event->xclient.data.l[2];
-
-                    // Request the chosen format from the source window
-                    XConvertSelection(_glfw.x11.display,
-                                      _glfw.x11.XdndSelection,
-                                      _glfw.x11.xdnd.format,
-                                      _glfw.x11.XdndSelection,
-                                      window->x11.handle,
-                                      time);
-                }
-                else if (_glfw.x11.xdnd.version >= 2)
-                {
-                    XEvent reply = { ClientMessage };
-                    reply.xclient.window = _glfw.x11.xdnd.source;
-                    reply.xclient.message_type = _glfw.x11.XdndFinished;
-                    reply.xclient.format = 32;
-                    reply.xclient.data.l[0] = window->x11.handle;
-                    reply.xclient.data.l[1] = 0; // The drag was rejected
-                    reply.xclient.data.l[2] = None;
-
-                    XSendEvent(_glfw.x11.display, _glfw.x11.xdnd.source,
-                               False, NoEventMask, &reply);
-                    XFlush(_glfw.x11.display);
-                }
-            }
-            else if (event->xclient.message_type == _glfw.x11.XdndPosition)
-            {
-                // The drag operation has moved over the window
-                const int xabs = (event->xclient.data.l[2] >> 16) & 0xffff;
-                const int yabs = (event->xclient.data.l[2]) & 0xffff;
-                Window dummy;
-                int xpos, ypos;
-
-                if (_glfw.x11.xdnd.version > _GLFW_XDND_VERSION)
-                    return;
-
-                XTranslateCoordinates(_glfw.x11.display,
-                                      _glfw.x11.root,
-                                      window->x11.handle,
-                                      xabs, yabs,
-                                      &xpos, &ypos,
-                                      &dummy);
-
-                _glfwInputCursorPos(window, xpos, ypos);
-
-                XEvent reply = { ClientMessage };
-                reply.xclient.window = _glfw.x11.xdnd.source;
-                reply.xclient.message_type = _glfw.x11.XdndStatus;
-                reply.xclient.format = 32;
-                reply.xclient.data.l[0] = window->x11.handle;
-                reply.xclient.data.l[2] = 0; // Specify an empty rectangle
-                reply.xclient.data.l[3] = 0;
-
-                if (_glfw.x11.xdnd.format)
-                {
-                    // Reply that we are ready to copy the dragged data
-                    reply.xclient.data.l[1] = 1; // Accept with no rectangle
-                    if (_glfw.x11.xdnd.version >= 2)
-                        reply.xclient.data.l[4] = _glfw.x11.XdndActionCopy;
-                }
-
-                XSendEvent(_glfw.x11.display, _glfw.x11.xdnd.source,
-                           False, NoEventMask, &reply);
-                XFlush(_glfw.x11.display);
-            }
-
-            return;
         }
-
-        case SelectionNotify:
-        {
-            if (event->xselection.property == _glfw.x11.XdndSelection)
-            {
-                // The converted data from the drag operation has arrived
-                char* data;
-                const unsigned long result =
-                    _glfwGetWindowPropertyX11(event->xselection.requestor,
-                                              event->xselection.property,
-                                              event->xselection.target,
-                                              (unsigned char**) &data);
-
-                if (result)
-                {
-                    int i, count;
-                    char** paths = parseUriList(data, &count);
-
-                    _glfwInputDrop(window, count, (const char**) paths);
-
-                    for (i = 0;  i < count;  i++)
-                        free(paths[i]);
-                    free(paths);
-                }
-
-                if (data)
-                    XFree(data);
-
-                if (_glfw.x11.xdnd.version >= 2)
-                {
-                    XEvent reply = { ClientMessage };
-                    reply.xclient.window = _glfw.x11.xdnd.source;
-                    reply.xclient.message_type = _glfw.x11.XdndFinished;
-                    reply.xclient.format = 32;
-                    reply.xclient.data.l[0] = window->x11.handle;
-                    reply.xclient.data.l[1] = result;
-                    reply.xclient.data.l[2] = _glfw.x11.XdndActionCopy;
-
-                    XSendEvent(_glfw.x11.display, _glfw.x11.xdnd.source,
-                               False, NoEventMask, &reply);
-                    XFlush(_glfw.x11.display);
-                }
-            }
-
-            return;
-        }
-
-        case FocusIn:
-        {
-            if (event->xfocus.mode == NotifyGrab ||
-                event->xfocus.mode == NotifyUngrab)
-            {
-                // Ignore focus events from popup indicator windows, window menu
-                // key chords and window dragging
-                return;
-            }
-
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
-                disableCursor(window);
-
-            if (window->x11.ic)
-                XSetICFocus(window->x11.ic);
-
-            _glfwInputWindowFocus(window, GLFW_TRUE);
-            return;
-        }
-
-        case FocusOut:
-        {
-            if (event->xfocus.mode == NotifyGrab ||
-                event->xfocus.mode == NotifyUngrab)
-            {
-                // Ignore focus events from popup indicator windows, window menu
-                // key chords and window dragging
-                return;
-            }
-
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
-                enableCursor(window);
-
-            if (window->x11.ic)
-                XUnsetICFocus(window->x11.ic);
-
-            if (window->monitor && window->autoIconify)
-                _glfwPlatformIconifyWindow(window);
-
-            _glfwInputWindowFocus(window, GLFW_FALSE);
-            return;
-        }
-
-        case Expose:
-        {
-            _glfwInputWindowDamage(window);
-            return;
-        }
-
-        case PropertyNotify:
-        {
-            if (event->xproperty.state != PropertyNewValue)
-                return;
-
-            if (event->xproperty.atom == _glfw.x11.WM_STATE)
-            {
-                const int state = getWindowState(window);
-                if (state != IconicState && state != NormalState)
-                    return;
-
-                const GLFWbool iconified = (state == IconicState);
-                if (window->x11.iconified != iconified)
-                {
-                    if (window->monitor)
-                    {
-                        if (iconified)
-                            releaseMonitor(window);
-                        else
-                            acquireMonitor(window);
-                    }
-
-                    window->x11.iconified = iconified;
-                    _glfwInputWindowIconify(window, iconified);
-                }
-            }
-            else if (event->xproperty.atom == _glfw.x11.NET_WM_STATE)
-            {
-                const GLFWbool maximized = _glfwPlatformWindowMaximized(window);
-                if (window->x11.maximized != maximized)
-                {
-                    window->x11.maximized = maximized;
-                    _glfwInputWindowMaximize(window, maximized);
-                }
-            }
-
-            return;
-        }
-
-        case DestroyNotify:
-            return;
     }
 }
 
