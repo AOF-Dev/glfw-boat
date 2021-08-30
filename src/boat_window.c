@@ -2976,26 +2976,12 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 
 void _glfwPlatformSetClipboardString(const char* string)
 {
-    char* copy = _glfw_strdup(string);
-    free(_glfw.x11.clipboardString);
-    _glfw.x11.clipboardString = copy;
-
-    XSetSelectionOwner(_glfw.x11.display,
-                       _glfw.x11.CLIPBOARD,
-                       _glfw.x11.helperWindowHandle,
-                       CurrentTime);
-
-    if (XGetSelectionOwner(_glfw.x11.display, _glfw.x11.CLIPBOARD) !=
-        _glfw.x11.helperWindowHandle)
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Failed to become owner of clipboard selection");
-    }
+    boatSetPrimaryClipString(string);
 }
 
 const char* _glfwPlatformGetClipboardString(void)
 {
-    return getSelectionString(_glfw.x11.CLIPBOARD);
+    return boatGetPrimaryClipString();
 }
 
 void _glfwPlatformGetRequiredInstanceExtensions(char** extensions)
