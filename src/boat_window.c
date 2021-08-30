@@ -2178,52 +2178,20 @@ void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled)
 
 float _glfwPlatformGetWindowOpacity(_GLFWwindow* window)
 {
-    float opacity = 1.f;
-
-    if (XGetSelectionOwner(_glfw.x11.display, _glfw.x11.NET_WM_CM_Sx))
-    {
-        CARD32* value = NULL;
-
-        if (_glfwGetWindowPropertyX11(window->x11.handle,
-                                      _glfw.x11.NET_WM_WINDOW_OPACITY,
-                                      XA_CARDINAL,
-                                      (unsigned char**) &value))
-        {
-            opacity = (float) (*value / (double) 0xffffffffu);
-        }
-
-        if (value)
-            XFree(value);
-    }
-
-    return opacity;
+    return 1.f;
 }
 
 void _glfwPlatformSetWindowOpacity(_GLFWwindow* window, float opacity)
 {
-    const CARD32 value = (CARD32) (0xffffffffu * (double) opacity);
-    XChangeProperty(_glfw.x11.display, window->x11.handle,
-                    _glfw.x11.NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32,
-                    PropModeReplace, (unsigned char*) &value, 1);
 }
 
 void _glfwPlatformSetRawMouseMotion(_GLFWwindow *window, GLFWbool enabled)
 {
-    if (!_glfw.x11.xi.available)
-        return;
-
-    if (_glfw.x11.disabledCursorWindow != window)
-        return;
-
-    if (enabled)
-        enableRawMouseMotion(window);
-    else
-        disableRawMouseMotion(window);
 }
 
 GLFWbool _glfwPlatformRawMouseMotionSupported(void)
 {
-    return _glfw.x11.xi.available;
+    return GLFW_FALSE;
 }
 
 void _glfwPlatformPollEvents(void)
