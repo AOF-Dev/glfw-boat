@@ -79,55 +79,6 @@ static int translateKey(int scancode)
     return _glfw.x11.keycodes[scancode];
 }
 
-// Updates the normal hints according to the window settings
-//
-static void updateNormalHints(_GLFWwindow* window, int width, int height)
-{
-    XSizeHints* hints = XAllocSizeHints();
-
-    if (!window->monitor)
-    {
-        if (window->resizable)
-        {
-            if (window->minwidth != GLFW_DONT_CARE &&
-                window->minheight != GLFW_DONT_CARE)
-            {
-                hints->flags |= PMinSize;
-                hints->min_width = window->minwidth;
-                hints->min_height = window->minheight;
-            }
-
-            if (window->maxwidth != GLFW_DONT_CARE &&
-                window->maxheight != GLFW_DONT_CARE)
-            {
-                hints->flags |= PMaxSize;
-                hints->max_width = window->maxwidth;
-                hints->max_height = window->maxheight;
-            }
-
-            if (window->numer != GLFW_DONT_CARE &&
-                window->denom != GLFW_DONT_CARE)
-            {
-                hints->flags |= PAspect;
-                hints->min_aspect.x = hints->max_aspect.x = window->numer;
-                hints->min_aspect.y = hints->max_aspect.y = window->denom;
-            }
-        }
-        else
-        {
-            hints->flags |= (PMinSize | PMaxSize);
-            hints->min_width  = hints->max_width  = width;
-            hints->min_height = hints->max_height = height;
-        }
-    }
-
-    hints->flags |= PWinGravity;
-    hints->win_gravity = StaticGravity;
-
-    XSetWMNormalHints(_glfw.x11.display, window->x11.handle, hints);
-    XFree(hints);
-}
-
 // Enable XI2 raw mouse motion events
 //
 static void enableRawMouseMotion(_GLFWwindow* window)
@@ -193,207 +144,31 @@ static void enableCursor(_GLFWwindow* window)
     updateCursorImage(window);
 }
 
-// Create the X11 window (and its colormap)
+// Get the ANativeWindow and peer infomation
 //
 static GLFWbool createNativeWindow(_GLFWwindow* window,
-                                   const _GLFWwndconfig* wndconfig,
-                                   Visual* visual, int depth)
+                                   const _GLFWwndconfig* wndconfig)
 {
-    int width = wndconfig->width;
-    int height = wndconfig->height;
+    // window width and height requirements ignored
+    window->boat.handle = boatGetNativeWindow();
+    ANativeWindow_acquire(window->boat.handle);
 
-    if (wndconfig->scaleToMonitor)
+    if (!window->boat.handle)
     {
-        width *= _glfw.x11.contentScaleX;
-        height *= _glfw.x11.contentScaleY;
-    }
-
-    // Create a colormap based on the visual used by the current context
-    window->x11.colormap = XCreateColormap(_glfw.x11.display,
-                                           _glfw.x11.root,
-                                           visual,
-                                           AllocNone);
-
-    window->x11.transparent = _glfwIsVisualTransparentX11(visual);
-
-    XSetWindowAttributes wa = { 0 };
-    wa.colormap = window->x11.colormap;
-    wa.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask |
-                    PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
-                    ExposureMask | FocusChangeMask | VisibilityChangeMask |
-                    EnterWindowMask | LeaveWindowMask | PropertyChangeMask;
-
-    _glfwGrabErrorHandlerX11();
-
-    window->x11.parent = _glfw.x11.root;
-    window->x11.handle = XCreateWindow(_glfw.x11.display,
-                                       _glfw.x11.root,
-                                       0, 0,   // Position
-                                       width, height,
-                                       0,      // Border width
-                                       depth,  // Color depth
-                                       InputOutput,
-                                       visual,
-                                       CWBorderPixel | CWColormap | CWEventMask,
-                                       &wa);
-
-    _glfwReleaseErrorHandlerX11();
-
-    if (!window->x11.handle)
-    {
-        _glfwInputErrorX11(GLFW_PLATFORM_ERROR,
-                           "X11: Failed to create window");
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                       "Boat: Failed to get window");
         return GLFW_FALSE;
     }
 
-    XSaveContext(_glfw.x11.display,
-                 window->x11.handle,
-                 _glfw.x11.context,
-                 (XPointer) window);
+    _glfw.boat.eventCurrent = window;
 
     if (!wndconfig->decorated)
         _glfwPlatformSetWindowDecorated(window, GLFW_FALSE);
 
-    if (_glfw.x11.NET_WM_STATE && !window->monitor)
-    {
-        Atom states[3];
-        int count = 0;
-
-        if (wndconfig->floating)
-        {
-            if (_glfw.x11.NET_WM_STATE_ABOVE)
-                states[count++] = _glfw.x11.NET_WM_STATE_ABOVE;
-        }
-
-        if (wndconfig->maximized)
-        {
-            if (_glfw.x11.NET_WM_STATE_MAXIMIZED_VERT &&
-                _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ)
-            {
-                states[count++] = _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT;
-                states[count++] = _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ;
-                window->x11.maximized = GLFW_TRUE;
-            }
-        }
-
-        if (count)
-        {
-            XChangeProperty(_glfw.x11.display, window->x11.handle,
-                            _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                            PropModeReplace, (unsigned char*) states, count);
-        }
-    }
-
-    // Declare the WM protocols supported by GLFW
-    {
-        Atom protocols[] =
-        {
-            _glfw.x11.WM_DELETE_WINDOW,
-            _glfw.x11.NET_WM_PING
-        };
-
-        XSetWMProtocols(_glfw.x11.display, window->x11.handle,
-                        protocols, sizeof(protocols) / sizeof(Atom));
-    }
-
-    // Declare our PID
-    {
-        const long pid = getpid();
-
-        XChangeProperty(_glfw.x11.display,  window->x11.handle,
-                        _glfw.x11.NET_WM_PID, XA_CARDINAL, 32,
-                        PropModeReplace,
-                        (unsigned char*) &pid, 1);
-    }
-
-    if (_glfw.x11.NET_WM_WINDOW_TYPE && _glfw.x11.NET_WM_WINDOW_TYPE_NORMAL)
-    {
-        Atom type = _glfw.x11.NET_WM_WINDOW_TYPE_NORMAL;
-        XChangeProperty(_glfw.x11.display,  window->x11.handle,
-                        _glfw.x11.NET_WM_WINDOW_TYPE, XA_ATOM, 32,
-                        PropModeReplace, (unsigned char*) &type, 1);
-    }
-
-    // Set ICCCM WM_HINTS property
-    {
-        XWMHints* hints = XAllocWMHints();
-        if (!hints)
-        {
-            _glfwInputError(GLFW_OUT_OF_MEMORY,
-                            "X11: Failed to allocate WM hints");
-            return GLFW_FALSE;
-        }
-
-        hints->flags = StateHint;
-        hints->initial_state = NormalState;
-
-        XSetWMHints(_glfw.x11.display, window->x11.handle, hints);
-        XFree(hints);
-    }
-
-    updateNormalHints(window, width, height);
-
-    // Set ICCCM WM_CLASS property
-    {
-        XClassHint* hint = XAllocClassHint();
-
-        if (strlen(wndconfig->x11.instanceName) &&
-            strlen(wndconfig->x11.className))
-        {
-            hint->res_name = (char*) wndconfig->x11.instanceName;
-            hint->res_class = (char*) wndconfig->x11.className;
-        }
-        else
-        {
-            const char* resourceName = getenv("RESOURCE_NAME");
-            if (resourceName && strlen(resourceName))
-                hint->res_name = (char*) resourceName;
-            else if (strlen(wndconfig->title))
-                hint->res_name = (char*) wndconfig->title;
-            else
-                hint->res_name = (char*) "glfw-application";
-
-            if (strlen(wndconfig->title))
-                hint->res_class = (char*) wndconfig->title;
-            else
-                hint->res_class = (char*) "GLFW-Application";
-        }
-
-        XSetClassHint(_glfw.x11.display, window->x11.handle, hint);
-        XFree(hint);
-    }
-
-    // Announce support for Xdnd (drag and drop)
-    {
-        const Atom version = _GLFW_XDND_VERSION;
-        XChangeProperty(_glfw.x11.display, window->x11.handle,
-                        _glfw.x11.XdndAware, XA_ATOM, 32,
-                        PropModeReplace, (unsigned char*) &version, 1);
-    }
-
+    window->boat.maximized = GLFW_TRUE;
     _glfwPlatformSetWindowTitle(window, wndconfig->title);
-
-    if (_glfw.x11.im)
-    {
-        window->x11.ic = XCreateIC(_glfw.x11.im,
-                                   XNInputStyle,
-                                   XIMPreeditNothing | XIMStatusNothing,
-                                   XNClientWindow,
-                                   window->x11.handle,
-                                   XNFocusWindow,
-                                   window->x11.handle,
-                                   NULL);
-    }
-
-    if (window->x11.ic)
-    {
-        unsigned long filter = 0;
-        if (XGetICValues(window->x11.ic, XNFilterEvents, &filter, NULL) == NULL)
-            XSelectInput(_glfw.x11.display, window->x11.handle, wa.event_mask | filter);
-    }
-
-    _glfwPlatformGetWindowPos(window, &window->x11.xpos, &window->x11.ypos);
-    _glfwPlatformGetWindowSize(window, &window->x11.width, &window->x11.height);
+    _glfwPlatformGetWindowPos(window, &window->boat.xpos, &window->boat.ypos);
+    _glfwPlatformGetWindowSize(window, &window->boat.width, &window->boat.height);
 
     return GLFW_TRUE;
 }
