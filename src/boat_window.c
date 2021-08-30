@@ -2136,94 +2136,32 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
 
 int _glfwPlatformWindowFocused(_GLFWwindow* window)
 {
-    Window focused;
-    int state;
-
-    XGetInputFocus(_glfw.x11.display, &focused, &state);
-    return window->x11.handle == focused;
+    return GLFW_TRUE;
 }
 
 int _glfwPlatformWindowIconified(_GLFWwindow* window)
 {
-    return getWindowState(window) == IconicState;
+    return GLFW_FALSE;
 }
 
 int _glfwPlatformWindowVisible(_GLFWwindow* window)
 {
-    XWindowAttributes wa;
-    XGetWindowAttributes(_glfw.x11.display, window->x11.handle, &wa);
-    return wa.map_state == IsViewable;
+    return GLFW_TRUE;
 }
 
 int _glfwPlatformWindowMaximized(_GLFWwindow* window)
 {
-    Atom* states;
-    unsigned long i;
-    GLFWbool maximized = GLFW_FALSE;
-
-    if (!_glfw.x11.NET_WM_STATE ||
-        !_glfw.x11.NET_WM_STATE_MAXIMIZED_VERT ||
-        !_glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ)
-    {
-        return maximized;
-    }
-
-    const unsigned long count =
-        _glfwGetWindowPropertyX11(window->x11.handle,
-                                  _glfw.x11.NET_WM_STATE,
-                                  XA_ATOM,
-                                  (unsigned char**) &states);
-
-    for (i = 0;  i < count;  i++)
-    {
-        if (states[i] == _glfw.x11.NET_WM_STATE_MAXIMIZED_VERT ||
-            states[i] == _glfw.x11.NET_WM_STATE_MAXIMIZED_HORZ)
-        {
-            maximized = GLFW_TRUE;
-            break;
-        }
-    }
-
-    if (states)
-        XFree(states);
-
-    return maximized;
+    return GLFW_TRUE;
 }
 
 int _glfwPlatformWindowHovered(_GLFWwindow* window)
 {
-    Window w = _glfw.x11.root;
-    while (w)
-    {
-        Window root;
-        int rootX, rootY, childX, childY;
-        unsigned int mask;
-
-        _glfwGrabErrorHandlerX11();
-
-        const Bool result = XQueryPointer(_glfw.x11.display, w,
-                                          &root, &w, &rootX, &rootY,
-                                          &childX, &childY, &mask);
-
-        _glfwReleaseErrorHandlerX11();
-
-        if (_glfw.x11.errorCode == BadWindow)
-            w = _glfw.x11.root;
-        else if (!result)
-            return GLFW_FALSE;
-        else if (w == window->x11.handle)
-            return GLFW_TRUE;
-    }
-
-    return GLFW_FALSE;
+    return GLFW_TRUE;
 }
 
 int _glfwPlatformFramebufferTransparent(_GLFWwindow* window)
 {
-    if (!window->x11.transparent)
-        return GLFW_FALSE;
-
-    return XGetSelectionOwner(_glfw.x11.display, _glfw.x11.NET_WM_CM_Sx) != None;
+    return GLFW_FALSE;
 }
 
 void _glfwPlatformSetWindowResizable(_GLFWwindow* window, GLFWbool enabled)
