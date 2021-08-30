@@ -177,42 +177,10 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
 //
 static void acquireMonitor(_GLFWwindow* window)
 {
-    if (_glfw.x11.saver.count == 0)
-    {
-        // Remember old screen saver settings
-        XGetScreenSaver(_glfw.x11.display,
-                        &_glfw.x11.saver.timeout,
-                        &_glfw.x11.saver.interval,
-                        &_glfw.x11.saver.blanking,
-                        &_glfw.x11.saver.exposure);
-
-        // Disable screen saver
-        XSetScreenSaver(_glfw.x11.display, 0, 0, DontPreferBlanking,
-                        DefaultExposures);
-    }
-
-    if (!window->monitor->window)
-        _glfw.x11.saver.count++;
-
-    _glfwSetVideoModeX11(window->monitor, &window->videoMode);
-
-    if (window->x11.overrideRedirect)
-    {
-        int xpos, ypos;
-        GLFWvidmode mode;
-
-        // Manually position the window over its monitor
-        _glfwPlatformGetMonitorPos(window->monitor, &xpos, &ypos);
-        _glfwPlatformGetVideoMode(window->monitor, &mode);
-
-        XMoveResizeWindow(_glfw.x11.display, window->x11.handle,
-                          xpos, ypos, mode.width, mode.height);
-    }
-
     _glfwInputMonitorWindow(window->monitor, window);
 }
 
-// Remove the window and restore the original video mode
+// Remove the window
 //
 static void releaseMonitor(_GLFWwindow* window)
 {
@@ -220,19 +188,6 @@ static void releaseMonitor(_GLFWwindow* window)
         return;
 
     _glfwInputMonitorWindow(window->monitor, NULL);
-    _glfwRestoreVideoModeX11(window->monitor);
-
-    _glfw.x11.saver.count--;
-
-    if (_glfw.x11.saver.count == 0)
-    {
-        // Restore old screen saver settings
-        XSetScreenSaver(_glfw.x11.display,
-                        _glfw.x11.saver.timeout,
-                        _glfw.x11.saver.interval,
-                        _glfw.x11.saver.blanking,
-                        _glfw.x11.saver.exposure);
-    }
 }
 
 // Process the specified Boat event
