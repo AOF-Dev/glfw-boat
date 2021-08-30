@@ -321,125 +321,31 @@ void _glfwPlatformFreeMonitor(_GLFWmonitor* monitor)
 
 void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos)
 {
-    if (_glfw.x11.randr.available && !_glfw.x11.randr.monitorBroken)
-    {
-        XRRScreenResources* sr =
-            XRRGetScreenResourcesCurrent(_glfw.x11.display, _glfw.x11.root);
-        XRRCrtcInfo* ci = XRRGetCrtcInfo(_glfw.x11.display, sr, monitor->x11.crtc);
-
-        if (ci)
-        {
-            if (xpos)
-                *xpos = ci->x;
-            if (ypos)
-                *ypos = ci->y;
-
-            XRRFreeCrtcInfo(ci);
-        }
-
-        XRRFreeScreenResources(sr);
-    }
+    if (xpos)
+        *xpos = 0;
+    if (ypos)
+        *ypos = 0;
 }
 
 void _glfwPlatformGetMonitorContentScale(_GLFWmonitor* monitor,
                                          float* xscale, float* yscale)
 {
     if (xscale)
-        *xscale = _glfw.x11.contentScaleX;
+        *xscale = _glfw.boat.contentScaleX;
     if (yscale)
-        *yscale = _glfw.x11.contentScaleY;
+        *yscale = _glfw.boat.contentScaleY;
 }
 
 void _glfwPlatformGetMonitorWorkarea(_GLFWmonitor* monitor, int* xpos, int* ypos, int* width, int* height)
 {
-    int areaX = 0, areaY = 0, areaWidth = 0, areaHeight = 0;
-
-    if (_glfw.x11.randr.available && !_glfw.x11.randr.monitorBroken)
-    {
-        XRRScreenResources* sr =
-            XRRGetScreenResourcesCurrent(_glfw.x11.display, _glfw.x11.root);
-        XRRCrtcInfo* ci = XRRGetCrtcInfo(_glfw.x11.display, sr, monitor->x11.crtc);
-
-        areaX = ci->x;
-        areaY = ci->y;
-
-        const XRRModeInfo* mi = getModeInfo(sr, ci->mode);
-
-        if (ci->rotation == RR_Rotate_90 || ci->rotation == RR_Rotate_270)
-        {
-            areaWidth  = mi->height;
-            areaHeight = mi->width;
-        }
-        else
-        {
-            areaWidth  = mi->width;
-            areaHeight = mi->height;
-        }
-
-        XRRFreeCrtcInfo(ci);
-        XRRFreeScreenResources(sr);
-    }
-    else
-    {
-        areaWidth  = DisplayWidth(_glfw.x11.display, _glfw.x11.screen);
-        areaHeight = DisplayHeight(_glfw.x11.display, _glfw.x11.screen);
-    }
-
-    if (_glfw.x11.NET_WORKAREA && _glfw.x11.NET_CURRENT_DESKTOP)
-    {
-        Atom* extents = NULL;
-        Atom* desktop = NULL;
-        const unsigned long extentCount =
-            _glfwGetWindowPropertyX11(_glfw.x11.root,
-                                      _glfw.x11.NET_WORKAREA,
-                                      XA_CARDINAL,
-                                      (unsigned char**) &extents);
-
-        if (_glfwGetWindowPropertyX11(_glfw.x11.root,
-                                      _glfw.x11.NET_CURRENT_DESKTOP,
-                                      XA_CARDINAL,
-                                      (unsigned char**) &desktop) > 0)
-        {
-            if (extentCount >= 4 && *desktop < extentCount / 4)
-            {
-                const int globalX = extents[*desktop * 4 + 0];
-                const int globalY = extents[*desktop * 4 + 1];
-                const int globalWidth  = extents[*desktop * 4 + 2];
-                const int globalHeight = extents[*desktop * 4 + 3];
-
-                if (areaX < globalX)
-                {
-                    areaWidth -= globalX - areaX;
-                    areaX = globalX;
-                }
-
-                if (areaY < globalY)
-                {
-                    areaHeight -= globalY - areaY;
-                    areaY = globalY;
-                }
-
-                if (areaX + areaWidth > globalX + globalWidth)
-                    areaWidth = globalX - areaX + globalWidth;
-                if (areaY + areaHeight > globalY + globalHeight)
-                    areaHeight = globalY - areaY + globalHeight;
-            }
-        }
-
-        if (extents)
-            XFree(extents);
-        if (desktop)
-            XFree(desktop);
-    }
-
     if (xpos)
-        *xpos = areaX;
+        *xpos = 0;
     if (ypos)
-        *ypos = areaY;
+        *ypos = 0;
     if (width)
-        *width = areaWidth;
+        *width = monitor->modes[monitor->boat.currentMode].width;
     if (height)
-        *height = areaHeight;
+        *height = monitor->modes[monitor->boat.currentMode].height;
 }
 
 GLFWvidmode* _glfwPlatformGetVideoModes(_GLFWmonitor* monitor, int* count)
