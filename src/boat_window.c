@@ -2249,13 +2249,6 @@ void _glfwPlatformWaitEventsTimeout(double timeout)
 
 void _glfwPlatformPostEmptyEvent(void)
 {
-    XEvent event = { ClientMessage };
-    event.xclient.window = _glfw.x11.helperWindowHandle;
-    event.xclient.format = 32; // Data is 32-bit longs
-    event.xclient.message_type = _glfw.x11.NULL_;
-
-    XSendEvent(_glfw.x11.display, _glfw.x11.helperWindowHandle, False, 0, &event);
-    XFlush(_glfw.x11.display);
 }
 
 void _glfwPlatformGetCursorPos(_GLFWwindow* window, double* xpos, double* ypos)
