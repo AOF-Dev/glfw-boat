@@ -23,6 +23,12 @@ elseif (_GLFW_X11)
     set(glfw_SOURCES ${common_SOURCES} x11_init.c x11_monitor.c x11_window.c
                      xkb_unicode.c posix_time.c posix_thread.c glx_context.c
                      egl_context.c osmesa_context.c)
+elseif (_GLFW_BOAT)
+    set(glfw_HEADERS ${common_HEADERS} boat_platform.h posix_time.h null_joystick.h
+                     posix_thread.h egl_context.h osmesa_context.h)
+    set(glfw_SOURCES ${common_SOURCES} boat_init.c null_joystick.c boat_monitor.c
+                     boat_window.c posix_time.c posix_thread.c egl_context.c
+                     osmesa_context.c)
 elseif (_GLFW_WAYLAND)
     set(glfw_HEADERS ${common_HEADERS} wl_platform.h
                      posix_time.h posix_thread.h xkb_unicode.h egl_context.h

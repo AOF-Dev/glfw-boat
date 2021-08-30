@@ -147,6 +147,9 @@ endif()
 if (GLFW_USE_WAYLAND)
     set(_GLFW_WAYLAND 1)
     message(STATUS "Using Wayland for window creation")
+elseif (GLFW_USE_BOAT)
+    set(_GLFW_BOAT 1)
+    message(STATUS "Using Boat for window creation")
 elseif (GLFW_USE_OSMESA)
     set(_GLFW_OSMESA 1)
     message(STATUS "Using OSMesa for headless context creation")
@@ -166,14 +169,15 @@ endif()
 #--------------------------------------------------------------------
 # Find and add Unix math and time libraries
 #--------------------------------------------------------------------
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT GLFW_USE_BOAT)
     find_library(RT_LIBRARY rt)
     mark_as_advanced(RT_LIBRARY)
     if (RT_LIBRARY)
         list(APPEND glfw_LIBRARIES "${RT_LIBRARY}")
         list(APPEND glfw_PKG_LIBS "-lrt")
     endif()
-
+endif()
+if (UNIX AND NOT APPLE)
     find_library(MATH_LIBRARY m)
     mark_as_advanced(MATH_LIBRARY)
     if (MATH_LIBRARY)
@@ -242,6 +246,36 @@ if (_GLFW_X11)
                                   "${X11_Xkb_INCLUDE_PATH}"
                                   "${X11_Xcursor_INCLUDE_PATH}"
                                   "${X11_Xi_INCLUDE_PATH}")
+endif()
+
+#--------------------------------------------------------------------
+# Use Boat for window creation
+#--------------------------------------------------------------------
+if (_GLFW_BOAT)
+
+    find_library(ANDROID_LIBRARY android)
+    mark_as_advanced(ANDROID_LIBRARY)
+    if (ANDROID_LIBRARY)
+        list(APPEND glfw_LIBRARIES "${ANDROID_LIBRARY}")
+        list(APPEND glfw_PKG_LIBS "-landroid")
+    else()
+        message(FATAL_ERROR "libandroid not fount; set correct CMAKE_LIBRARY_PATH to include libandroid.so")
+    endif()
+
+    find_library(BOAT_LIBRARY boat ${BOAT_LIB_PATH})
+    if (BOAT_LIBRARY)
+        list(APPEND glfw_LIBRARIES "${BOAT_LIBRARY}")
+        list(APPEND glfw_PKG_LIBS "-lboat")
+    else()
+        message(FATAL_ERROR "libboat not fount; set correct BOAT_LIB_PATH to include libboat.so")
+    endif()
+
+    if (NOT BOAT_INCLUDE_PATH)
+        message(FATAL_ERROR "Boat headers not found; set correct BOAT_INCLUDE_PATH to include headers")
+    endif()
+    list(APPEND glfw_INCLUDE_DIRS "${BOAT_INCLUDE_PATH}")
+    list(APPEND glfw_PKG_DEPS "android")
+    list(APPEND glfw_PKG_DEPS "boat")
 endif()
 
 #--------------------------------------------------------------------
