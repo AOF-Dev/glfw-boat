@@ -68,14 +68,11 @@ typedef VkResult (APIENTRY *PFN_vkCreateAndroidSurfaceKHR)(VkInstance, const VkA
 #define _GLFW_PLATFORM_CONTEXT_STATE         struct { int dummyContext; }
 #define _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE struct { int dummyLibraryContext; }
 
-// X11-specific per-window data
+// Boat-specific per-window data
 //
-typedef struct _GLFWwindowX11
+typedef struct _GLFWwindowBoat
 {
-    Colormap        colormap;
-    Window          handle;
-    Window          parent;
-    XIC             ic;
+    ANativeWindow*  handle;
 
     GLFWbool        overrideRedirect;
     GLFWbool        iconified;
@@ -93,11 +90,7 @@ typedef struct _GLFWwindowX11
     // The last position the cursor was warped to by GLFW
     int             warpCursorPosX, warpCursorPosY;
 
-    // The time of the last KeyPress event per keycode, for discarding
-    // duplicate key events generated for some keys by ibus
-    Time            keyPressTimes[256];
-
-} _GLFWwindowX11;
+} _GLFWwindowBoat;
 
 // Boat-specific global data
 //
@@ -139,5 +132,5 @@ typedef struct _GLFWcursorBoat
 } _GLFWcursorBoat;
 
 
-void _glfwPollMonitorsX11(void);
+void _glfwPollMonitorsBoat(void);
 
