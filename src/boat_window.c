@@ -79,69 +79,29 @@ static int translateKey(int scancode)
     return _glfw.x11.keycodes[scancode];
 }
 
-// Enable XI2 raw mouse motion events
-//
-static void enableRawMouseMotion(_GLFWwindow* window)
-{
-    XIEventMask em;
-    unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
-
-    em.deviceid = XIAllMasterDevices;
-    em.mask_len = sizeof(mask);
-    em.mask = mask;
-    XISetMask(mask, XI_RawMotion);
-
-    XISelectEvents(_glfw.x11.display, _glfw.x11.root, &em, 1);
-}
-
-// Disable XI2 raw mouse motion events
-//
-static void disableRawMouseMotion(_GLFWwindow* window)
-{
-    XIEventMask em;
-    unsigned char mask[] = { 0 };
-
-    em.deviceid = XIAllMasterDevices;
-    em.mask_len = sizeof(mask);
-    em.mask = mask;
-
-    XISelectEvents(_glfw.x11.display, _glfw.x11.root, &em, 1);
-}
-
 // Apply disabled cursor mode to a focused window
 //
 static void disableCursor(_GLFWwindow* window)
 {
-    if (window->rawMouseMotion)
-        enableRawMouseMotion(window);
-
-    _glfw.x11.disabledCursorWindow = window;
+    _glfw.boat.disabledCursorWindow = window;
     _glfwPlatformGetCursorPos(window,
-                              &_glfw.x11.restoreCursorPosX,
-                              &_glfw.x11.restoreCursorPosY);
-    updateCursorImage(window);
+                              &_glfw.boat.restoreCursorPosX,
+                              &_glfw.boat.restoreCursorPosY);
+    // updateCursorImage(window);
     _glfwCenterCursorInContentArea(window);
-    XGrabPointer(_glfw.x11.display, window->x11.handle, True,
-                 ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
-                 GrabModeAsync, GrabModeAsync,
-                 window->x11.handle,
-                 _glfw.x11.hiddenCursorHandle,
-                 CurrentTime);
+    boatSetCursorMode(CursorDisabled);
 }
 
 // Exit disabled cursor mode for the specified window
 //
 static void enableCursor(_GLFWwindow* window)
 {
-    if (window->rawMouseMotion)
-        disableRawMouseMotion(window);
-
-    _glfw.x11.disabledCursorWindow = NULL;
-    XUngrabPointer(_glfw.x11.display, CurrentTime);
+    _glfw.boat.disabledCursorWindow = NULL;
+    boatSetCursorMode(CursorEnabled);
     _glfwPlatformSetCursorPos(window,
-                              _glfw.x11.restoreCursorPosX,
-                              _glfw.x11.restoreCursorPosY);
-    updateCursorImage(window);
+                              _glfw.boat.restoreCursorPosX,
+                              _glfw.boat.restoreCursorPosY);
+    // updateCursorImage(window);
 }
 
 // Get the ANativeWindow and peer infomation
