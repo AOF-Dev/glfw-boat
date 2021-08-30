@@ -2922,55 +2922,23 @@ int _glfwPlatformCreateCursor(_GLFWcursor* cursor,
                               const GLFWimage* image,
                               int xhot, int yhot)
 {
-    cursor->x11.handle = _glfwCreateCursorX11(image, xhot, yhot);
-    if (!cursor->x11.handle)
-        return GLFW_FALSE;
-
     return GLFW_TRUE;
 }
 
 int _glfwPlatformCreateStandardCursor(_GLFWcursor* cursor, int shape)
 {
-    int native = 0;
-
-    if (shape == GLFW_ARROW_CURSOR)
-        native = XC_left_ptr;
-    else if (shape == GLFW_IBEAM_CURSOR)
-        native = XC_xterm;
-    else if (shape == GLFW_CROSSHAIR_CURSOR)
-        native = XC_crosshair;
-    else if (shape == GLFW_HAND_CURSOR)
-        native = XC_hand2;
-    else if (shape == GLFW_HRESIZE_CURSOR)
-        native = XC_sb_h_double_arrow;
-    else if (shape == GLFW_VRESIZE_CURSOR)
-        native = XC_sb_v_double_arrow;
-    else
-        return GLFW_FALSE;
-
-    cursor->x11.handle = XCreateFontCursor(_glfw.x11.display, native);
-    if (!cursor->x11.handle)
-    {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Failed to create standard cursor");
-        return GLFW_FALSE;
-    }
-
     return GLFW_TRUE;
 }
 
 void _glfwPlatformDestroyCursor(_GLFWcursor* cursor)
 {
-    if (cursor->x11.handle)
-        XFreeCursor(_glfw.x11.display, cursor->x11.handle);
 }
 
 void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 {
     if (window->cursorMode == GLFW_CURSOR_NORMAL)
     {
-        updateCursorImage(window);
-        XFlush(_glfw.x11.display);
+        // updateCursorImage(window);
     }
 }
 
