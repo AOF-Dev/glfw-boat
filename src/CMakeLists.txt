@@ -86,12 +86,19 @@ if (CMAKE_VERSION VERSION_LESS "3.16" AND APPLE)
 endif()
 
 add_library(glfw ${glfw_SOURCES} ${glfw_HEADERS})
-set_target_properties(glfw PROPERTIES
-                      OUTPUT_NAME ${GLFW_LIB_NAME}
-                      VERSION ${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}
-                      SOVERSION ${GLFW_VERSION_MAJOR}
-                      POSITION_INDEPENDENT_CODE ON
-                      FOLDER "GLFW3")
+if (BUILD_LIB_SOVERSION)
+    set_target_properties(glfw PROPERTIES
+                          OUTPUT_NAME ${GLFW_LIB_NAME}
+                          VERSION ${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}
+                          SOVERSION ${GLFW_VERSION_MAJOR}
+                          POSITION_INDEPENDENT_CODE ON
+                          FOLDER "GLFW3")
+else()
+    set_target_properties(glfw PROPERTIES
+                          OUTPUT_NAME ${GLFW_LIB_NAME}
+                          POSITION_INDEPENDENT_CODE ON
+                          FOLDER "GLFW3")
+endif()
 
 if (CMAKE_VERSION VERSION_EQUAL "3.1.0" OR
     CMAKE_VERSION VERSION_GREATER "3.1.0")
