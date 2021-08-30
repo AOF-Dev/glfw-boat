@@ -126,6 +126,7 @@ typedef enum VkStructureType
     VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR = 1000004000,
     VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR = 1000005000,
     VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR = 1000006000,
+    VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR = 1000008000,
     VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
     VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK = 1000123000,
     VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT = 1000217000,
@@ -188,6 +189,8 @@ typedef void (APIENTRY * PFN_vkVoidFunction)(void);
  #include "x11_platform.h"
 #elif defined(_GLFW_WAYLAND)
  #include "wl_platform.h"
+#elif defined(_GLFW_BOAT)
+ #include "boat_platform.h"
 #elif defined(_GLFW_OSMESA)
  #include "null_platform.h"
 #else
@@ -564,6 +567,8 @@ struct _GLFWlibrary
         GLFWbool        KHR_xcb_surface;
 #elif defined(_GLFW_WAYLAND)
         GLFWbool        KHR_wayland_surface;
+#elif defined(_GLFW_BOAT)
+        GLFWbool        KHR_android_surface;
 #endif
     } vk;
 
