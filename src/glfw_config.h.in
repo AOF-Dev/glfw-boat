@@ -42,6 +42,8 @@
 #cmakedefine _GLFW_COCOA
 // Define this to 1 if building GLFW for Wayland
 #cmakedefine _GLFW_WAYLAND
+// Define this to 1 if building GLFW for Boat
+#cmakedefine _GLFW_BOAT
 // Define this to 1 if building GLFW for OSMesa
 #cmakedefine _GLFW_OSMESA
 
