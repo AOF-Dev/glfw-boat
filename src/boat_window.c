@@ -2107,6 +2107,7 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
                                    int width, int height,
                                    int refreshRate)
 {
+    // Are these codes meaningful?
     if (window->monitor == monitor)
     {
         if (monitor)
@@ -2114,16 +2115,7 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
             if (monitor->window == window)
                 acquireMonitor(window);
         }
-        else
-        {
-            if (!window->resizable)
-                updateNormalHints(window, width, height);
 
-            XMoveResizeWindow(_glfw.x11.display, window->x11.handle,
-                              xpos, ypos, width, height);
-        }
-
-        XFlush(_glfw.x11.display);
         return;
     }
 
@@ -2135,27 +2127,11 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
     }
 
     _glfwInputWindowMonitor(window, monitor);
-    updateNormalHints(window, width, height);
 
     if (window->monitor)
     {
-        if (!_glfwPlatformWindowVisible(window))
-        {
-            XMapRaised(_glfw.x11.display, window->x11.handle);
-            waitForVisibilityNotify(window);
-        }
-
-        updateWindowMode(window);
         acquireMonitor(window);
     }
-    else
-    {
-        updateWindowMode(window);
-        XMoveResizeWindow(_glfw.x11.display, window->x11.handle,
-                          xpos, ypos, width, height);
-    }
-
-    XFlush(_glfw.x11.display);
 }
 
 int _glfwPlatformWindowFocused(_GLFWwindow* window)
