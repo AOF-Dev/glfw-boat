@@ -134,30 +134,25 @@ typedef struct _GLFWmonitorX11
 
 } _GLFWmonitorX11;
 
-// X11-specific per-cursor data
+// Boat-specific per-cursor data
 //
-typedef struct _GLFWcursorX11
+typedef struct _GLFWcursorBoat
 {
-    Cursor handle;
+    // Useless struct filler
+    void* handle;
 
-} _GLFWcursorX11;
+} _GLFWcursorBoat;
 
 
 void _glfwPollMonitorsX11(void);
 void _glfwSetVideoModeX11(_GLFWmonitor* monitor, const GLFWvidmode* desired);
 void _glfwRestoreVideoModeX11(_GLFWmonitor* monitor);
 
-Cursor _glfwCreateCursorX11(const GLFWimage* image, int xhot, int yhot);
-
 unsigned long _glfwGetWindowPropertyX11(Window window,
                                         Atom property,
                                         Atom type,
                                         unsigned char** value);
 GLFWbool _glfwIsVisualTransparentX11(Visual* visual);
-
-void _glfwGrabErrorHandlerX11(void);
-void _glfwReleaseErrorHandlerX11(void);
-void _glfwInputErrorX11(int error, const char* message);
 
 void _glfwPushSelectionToManagerX11(void);
 
