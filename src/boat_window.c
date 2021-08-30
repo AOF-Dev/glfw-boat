@@ -2054,70 +2054,23 @@ void _glfwPlatformGetWindowFrameSize(_GLFWwindow* window,
                                      int* left, int* top,
                                      int* right, int* bottom)
 {
-    long* extents = NULL;
-
-    if (window->monitor || !window->decorated)
-        return;
-
-    if (_glfw.x11.NET_FRAME_EXTENTS == None)
-        return;
-
-    if (!_glfwPlatformWindowVisible(window) &&
-        _glfw.x11.NET_REQUEST_FRAME_EXTENTS)
-    {
-        XEvent event;
-        double timeout = 0.5;
-
-        // Ensure _NET_FRAME_EXTENTS is set, allowing glfwGetWindowFrameSize to
-        // function before the window is mapped
-        sendEventToWM(window, _glfw.x11.NET_REQUEST_FRAME_EXTENTS,
-                      0, 0, 0, 0, 0);
-
-        // HACK: Use a timeout because earlier versions of some window managers
-        //       (at least Unity, Fluxbox and Xfwm) failed to send the reply
-        //       They have been fixed but broken versions are still in the wild
-        //       If you are affected by this and your window manager is NOT
-        //       listed above, PLEASE report it to their and our issue trackers
-        while (!XCheckIfEvent(_glfw.x11.display,
-                              &event,
-                              isFrameExtentsEvent,
-                              (XPointer) window))
-        {
-            if (!waitForEvent(&timeout))
-            {
-                _glfwInputError(GLFW_PLATFORM_ERROR,
-                                "X11: The window manager has a broken _NET_REQUEST_FRAME_EXTENTS implementation; please report this issue");
-                return;
-            }
-        }
-    }
-
-    if (_glfwGetWindowPropertyX11(window->x11.handle,
-                                  _glfw.x11.NET_FRAME_EXTENTS,
-                                  XA_CARDINAL,
-                                  (unsigned char**) &extents) == 4)
-    {
-        if (left)
-            *left = extents[0];
-        if (top)
-            *top = extents[2];
-        if (right)
-            *right = extents[1];
-        if (bottom)
-            *bottom = extents[3];
-    }
-
-    if (extents)
-        XFree(extents);
+    if (left)
+        *left = 0;
+    if (top)
+        *top = 0;
+    if (right)
+        *right = 0;
+    if (bottom)
+        *bottom = 0;
 }
 
 void _glfwPlatformGetWindowContentScale(_GLFWwindow* window,
                                         float* xscale, float* yscale)
 {
     if (xscale)
-        *xscale = _glfw.x11.contentScaleX;
+        *xscale = _glfw.boat.contentScaleX;
     if (yscale)
-        *yscale = _glfw.x11.contentScaleY;
+        *yscale = _glfw.boat.contentScaleY;
 }
 
 void _glfwPlatformIconifyWindow(_GLFWwindow* window)
